@@ -1,22 +1,17 @@
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { createClient } from '@supabase/supabase-js'
+import 'dotenv/config'
 
-const db_url = ''
-const supabase_url = ''
-const service_role_key = '' // Replace with your actual service role key
-
-
-// process.env.DATABASE_URL!
-const sql = postgres(db_url, {
+const sql = postgres(process.env.DB_URL!, {
   ssl: 'require'
 })
 
 export const db = drizzle(sql)
 
 export const supabase = createClient(
-  supabase_url,
-  service_role_key,
+process.env.SUPABASE_URL!,
+  process.env.SERVICE_ROLE_KEY!,
 )
 
 export const uploadLootImage = async (file: File) => {
