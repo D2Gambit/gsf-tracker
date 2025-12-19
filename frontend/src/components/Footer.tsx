@@ -1,5 +1,5 @@
-import React from 'react';
-import { Github, MessageCircle, Twitter } from 'lucide-react';
+import React from "react";
+import { Github, MessageCircle, Twitter } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="text-sm text-gray-600">
             © 2025 GSF Tracker. Built for Project Diablo 2 community.
           </div>
-          
+
           <div className="flex space-x-6">
             <a
               href="#"
