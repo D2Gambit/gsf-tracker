@@ -174,17 +174,24 @@ export default function HaveList() {
             <div className="text-center py-12">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">
-                {searchTerm ? "No items match your search." : "No items in have list yet."}
+                {searchTerm
+                  ? "No items match your search."
+                  : "No items in have list yet."}
               </p>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
               {filteredItems.map((item) => (
-                <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div
+                  key={item.id}
+                  className="p-6 hover:bg-gray-50 transition-colors"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{item.itemName}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {item.itemName}
+                        </h3>
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getQualityColor(
                             item.quality
@@ -198,27 +205,37 @@ export default function HaveList() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                      <p className="text-sm text-gray-600 mb-3">
+                        {item.description}
+                      </p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
                         <div className="space-y-1">
                           <div>
                             Found by:{" "}
-                            <span className="font-medium text-gray-700">{item.foundBy}</span>
+                            <span className="font-medium text-gray-700">
+                              {item.foundBy}
+                            </span>
                           </div>
                           <div>
                             Location:{" "}
-                            <span className="font-medium text-gray-700">{item.location}</span>
+                            <span className="font-medium text-gray-700">
+                              {item.location}
+                            </span>
                           </div>
                         </div>
                         <div className="space-y-1">
                           <div>
                             Date found:{" "}
-                            <span className="font-medium text-gray-700">{item.dateFound}</span>
+                            <span className="font-medium text-gray-700">
+                              {item.dateFound}
+                            </span>
                           </div>
                           {item.isReserved && item.reservedFor && (
                             <div>
                               Reserved for:{" "}
-                              <span className="font-medium text-red-600">{item.reservedFor}</span>
+                              <span className="font-medium text-red-600">
+                                {item.reservedFor}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -272,7 +289,9 @@ export default function HaveList() {
         {/* Stats */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="text-2xl font-bold text-gray-900">{haveItems.length}</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {haveItems.length}
+            </div>
             <div className="text-sm text-gray-600">Total Items</div>
           </div>
           <div className="bg-white p-4 rounded-lg border border-gray-200">

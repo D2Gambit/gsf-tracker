@@ -1,16 +1,16 @@
-import React from 'react';
-import '@radix-ui/themes/styles.css';
-import { Theme } from '@radix-ui/themes';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from "react";
+import "@radix-ui/themes/styles.css";
+import { Theme } from "@radix-ui/themes";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Home from './src/pages/Home';
-import LootShowcase from './src/pages/LootShowcase';
-import SignUp from './src/pages/SignUp';
-import NeedList from './src/pages/NeedList';
-import HaveList from './src/pages/HaveList';
-import NotFound from './src/pages/NotFound';
+import Home from "./src/pages/Home";
+import LootShowcase from "./src/pages/LootShowcase";
+import SignUp from "./src/pages/SignUp";
+import NeedList from "./src/pages/NeedList";
+import HaveList from "./src/pages/HaveList";
+import NotFound from "./src/pages/NotFound";
 
 const App: React.FC = () => {
   return (
@@ -36,6 +36,6 @@ const App: React.FC = () => {
       </Router>
     </Theme>
   );
-}
+};
 
 export default App;
