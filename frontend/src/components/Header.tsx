@@ -25,8 +25,10 @@ const Header = () => {
           <div className="flex flex-row items-center gap-2">
             <button
               className={`${
-                gemActivated ? "bg-fuchsia-800" : "bg-blue-700"
-              } [clip-path:polygon(30%_0%,70%_0%,100%_30%,100%_70%,70%_100%,30%_100%,0%_70%,0%_30%)] hover:opacity-90 text-white font-bold py-4 px-4`}
+                gemActivated
+                  ? "bg-fuchsia-800 border-4 border-fuchsia-950"
+                  : "bg-blue-700 border-4 border-blue-800"
+              } [clip-path:polygon(30%_0%,70%_0%,100%_30%,100%_70%,70%_100%,30%_100%,0%_70%,0%_30%)] hover:opacity-90 text-white font-bold w-8 h-8`}
               title="GEM"
               onClick={() => {
                 setGemActivated(!gemActivated);
