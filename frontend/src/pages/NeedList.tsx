@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Edit,
@@ -14,12 +14,12 @@ import { toast } from "react-toastify";
 
 interface NeedItem {
   id: string;
-  itemName: string;
+  name: string;
   description: string;
   priority: "High" | "Medium" | "Low";
   requestedBy: string;
   isActive: boolean;
-  dateAdded: string;
+  createdAt: string;
 }
 
 export default function NeedList() {
@@ -30,52 +30,31 @@ export default function NeedList() {
   };
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [needItems, setNeedItems] = useState<NeedItem[]>([
-    {
-      id: "1",
-      itemName: "Shako",
-      description: "Any roll acceptable",
-      priority: "High",
-      requestedBy: "Carizona",
-      isActive: true,
-      dateAdded: "2025-01-15",
-    },
-    {
-      id: "2",
-      itemName: "Enigma Base",
-      description: "Superior Mage Plate or Archon Plate",
-      priority: "High",
-      requestedBy: "D2Gambit",
-      isActive: true,
-      dateAdded: "2025-01-14",
-    },
-    {
-      id: "3",
-      itemName: "Arachnid Mesh",
-      description: "Need at least 15% FCR",
-      priority: "Medium",
-      requestedBy: "minted",
-      isActive: false,
-      dateAdded: "2025-01-13",
-    },
-    {
-      id: "4",
-      itemName: "Stone of Jordan",
-      description: "SoJ ring for my sorc",
-      priority: "Low",
-      requestedBy: "zachammer",
-      isActive: true,
-      dateAdded: "2025-01-12",
-    },
-  ]);
+  const [needItems, setNeedItems] = useState<NeedItem[]>([]);
+
+  useEffect(() => {
+    // Fetch need items from backend API
+    const fetchNeedItems = async () => {
+      try {
+        const response = await fetch("/api/need-items");
+        const data = await response.json();
+        setNeedItems(data);
+      } catch (error) {
+        console.error("Error fetching need items:", error);
+      }
+    };
+
+    fetchNeedItems();
+  }, []);
 
   const filteredItems = needItems.filter(
     (item) =>
-      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const toggleActive = (id: string) => {
+    console.log("Toggling active status for item ID:", id);
     setNeedItems((items) =>
       items.map((item) =>
         item.id === id ? { ...item, isActive: !item.isActive } : item
@@ -173,7 +152,7 @@ export default function NeedList() {
                             item.isActive ? "text-gray-900" : "text-gray-400"
                           }`}
                         >
-                          {item.itemName}
+                          {item.name}
                         </h3>
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
@@ -191,12 +170,14 @@ export default function NeedList() {
                       <p
                         className={`text-sm mb-3 ${
                           item.isActive ? "text-gray-600" : "text-gray-400"
-                        }`}
+                        } ${!item.description && "italic"}`}
                       >
-                        {item.description}
+                        {item.description
+                          ? item.description
+                          : "No description provided."}
                       </p>
                       <div
-                        className={`flex items-center space-x-4 text-sm ${
+                        className={`flex items-center space-x-4 text-sm justify-between ${
                           item.isActive ? "text-gray-900" : "text-gray-400"
                         }`}
                       >
@@ -206,42 +187,51 @@ export default function NeedList() {
                             {item.requestedBy}
                           </span>
                         </span>
-                        <span>Added: {item.dateAdded}</span>
                       </div>
                     </div>
-
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() => toggleActive(item.id)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          item.isActive
-                            ? "text-green-600 hover:bg-green-50"
-                            : "text-gray-400 hover:bg-gray-50"
-                        }`}
-                        title={
-                          item.isActive ? "Mark as inactive" : "Mark as active"
-                        }
-                      >
-                        {item.isActive ? (
-                          <ToggleRight className="h-5 w-5" />
-                        ) : (
-                          <ToggleLeft className="h-5 w-5" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => editItem(item.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Edit item"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteItem(item.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete item"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                    <div className="flex flex-col items-center space-x-4">
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          onClick={() => toggleActive(item.id)}
+                          className={`p-2 rounded-lg transition-colors ${
+                            item.isActive
+                              ? "text-green-600 hover:bg-green-50"
+                              : "text-gray-400 hover:bg-gray-50"
+                          }`}
+                          title={
+                            item.isActive
+                              ? "Mark as inactive"
+                              : "Mark as active"
+                          }
+                        >
+                          {item.isActive ? (
+                            <ToggleRight className="h-5 w-5" />
+                          ) : (
+                            <ToggleLeft className="h-5 w-5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => editItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Edit item"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete item"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <br />
+                      <span className="">
+                        Added:{" "}
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleDateString("en-CA")
+                          : "Unknown"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -253,7 +243,6 @@ export default function NeedList() {
         {/* Modal for Add Item */}
         {isModalOpen && (
           <AddItemForm
-            isModalOpen={isModalOpen}
             setIsModalOpen={setIsModalOpen}
             needItems={needItems}
             setNeedItems={setNeedItems}

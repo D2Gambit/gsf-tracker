@@ -1,6 +1,7 @@
 import { Hono } from "hono";
-import { createFind, getLatestFinds } from "./queries/finds";
-import { uploadLootImage } from "./db";
+import { createFind, getLatestFinds } from "../store/finds_store";
+import { uploadLootImage } from "../config/db";
+import { createNeedItem, getNeedItems } from "../store/needs_store";
 
 export const api = new Hono();
 
@@ -31,13 +32,26 @@ api.post("/upload-finds", async (c) => {
   return c.json(result[0]);
 });
 
+api.get("/need-items", async (c) => {
+  return c.json(await getNeedItems());
+});
+
 api.post("/add-need-item", async (c) => {
-  // later: parse body, save file, write DB row
-  return c.json({
-    success: true,
-    message: "Add need item endpoint hit",
-    timestamp: new Date().toISOString(),
+  const body = await c.req.parseBody();
+
+  console.log("Received body:", body);
+
+  const result = await createNeedItem({
+    gsfGroupId: body.gsfGroupId as string,
+    name: body.name as string,
+    description: body.description as string,
+    requestedBy: body.requestedBy as string,
+    priority: body.priority as string,
+    createdAt: new Date(),
+    isActive: (body.isActive as string) === "true",
   });
+
+  return c.json(result[0]);
 });
 
 api.post("/add-have-item", async (c) => {

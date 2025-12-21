@@ -1,40 +1,51 @@
 import React, { useState } from "react";
 
 type NeedItemForm = {
-  itemName: string;
+  name: string;
   description: string;
   requestedBy: string;
   priority: string;
 };
 
 export default function AddItemForm({
-  isModalOpen,
   setIsModalOpen,
   needItems,
   setNeedItems,
   addItem,
 }: {
-  isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   needItems: any[];
   setNeedItems: React.Dispatch<React.SetStateAction<any[]>>;
   addItem: (id: string) => void;
 }) {
   const [form, setForm] = useState<NeedItemForm>({
-    itemName: "",
+    name: "",
     description: "",
     requestedBy: "",
     priority: "",
   });
 
   const handleAddItemConfirmClick = async () => {
+    console.log(
+      "Submitting form:",
+      JSON.stringify({
+        ...form,
+        isActive: true,
+        gsfGroupId: "CariGSF",
+      })
+    );
     try {
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      formData.append("requestedBy", form.requestedBy);
+      formData.append("priority", form.priority);
+      formData.append("isActive", "true");
+      formData.append("gsfGroupId", "CariGSF");
+
       const res = await fetch("/api/add-need-item", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
+        body: formData,
       });
 
       if (!res.ok) {
@@ -42,18 +53,10 @@ export default function AddItemForm({
       }
 
       const data = await res.json();
-      setNeedItems([
-        ...needItems,
-        {
-          ...form,
-          dateAdded: new Date(Date.now()).toLocaleDateString("en-CA"),
-          isActive: true,
-        },
-      ]);
-      setIsModalOpen(false);
-      addItem("1");
-      console.log("Form Data", form);
       console.log("Backend response:", data);
+      setNeedItems([...needItems, data]); // flattens need items from parent and adds response item
+      setIsModalOpen(false); // closes the modal
+      addItem(data.id); // show toast notification
     } catch (err) {
       console.error("Error calling backend:", err);
     }
@@ -69,8 +72,8 @@ export default function AddItemForm({
           type="text"
           placeholder="Item Name"
           className="w-full mb-3 p-2 rounded bg-zinc-700 text-zinc-100"
-          value={form.itemName}
-          onChange={(e) => setForm({ ...form, itemName: e.target.value })}
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
 
         {/* Description */}
@@ -118,7 +121,7 @@ export default function AddItemForm({
           <button
             className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
             onClick={handleAddItemConfirmClick}
-            disabled={!form.itemName}
+            disabled={!form.name}
           >
             Request Need
           </button>
