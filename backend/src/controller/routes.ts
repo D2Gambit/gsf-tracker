@@ -1,7 +1,12 @@
 import { Hono } from "hono";
 import { createFind, getLatestFinds } from "../store/finds_store";
 import { uploadLootImage } from "../config/db";
-import { createNeedItem, getNeedItems } from "../store/needs_store";
+import {
+  createNeedItem,
+  deleteNeedItem,
+  getNeedItems,
+  updateNeedItemActiveFlag,
+} from "../store/needs_store";
 
 export const api = new Hono();
 
@@ -36,10 +41,12 @@ api.get("/need-items", async (c) => {
   return c.json(await getNeedItems());
 });
 
+api.delete(`/delete-need-item/:id`, async (c) => {
+  return c.json(await deleteNeedItem(c.req.param("id")));
+});
+
 api.post("/add-need-item", async (c) => {
   const body = await c.req.parseBody();
-
-  console.log("Received body:", body);
 
   const result = await createNeedItem({
     gsfGroupId: body.gsfGroupId as string,
@@ -50,6 +57,16 @@ api.post("/add-need-item", async (c) => {
     createdAt: new Date(),
     isActive: (body.isActive as string) === "true",
   });
+
+  return c.json(result[0]);
+});
+
+api.post("/is-active-need-item", async (c) => {
+  const body = await c.req.parseBody();
+  const result = await updateNeedItemActiveFlag(
+    body.id as string,
+    (body.isActive as string) === "true"
+  );
 
   return c.json(result[0]);
 });

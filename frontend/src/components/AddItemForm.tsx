@@ -12,28 +12,23 @@ export default function AddItemForm({
   needItems,
   setNeedItems,
   addItem,
+  editItem,
 }: {
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   needItems: any[];
   setNeedItems: React.Dispatch<React.SetStateAction<any[]>>;
   addItem: (id: string) => void;
+  editItem: any;
 }) {
   const [form, setForm] = useState<NeedItemForm>({
-    name: "",
-    description: "",
-    requestedBy: "",
-    priority: "",
+    name: editItem.name,
+    description: editItem.description,
+    requestedBy: editItem.requestedBy,
+    priority: editItem.priority,
   });
 
   const handleAddItemConfirmClick = async () => {
-    console.log(
-      "Submitting form:",
-      JSON.stringify({
-        ...form,
-        isActive: true,
-        gsfGroupId: "CariGSF",
-      })
-    );
+    setIsModalOpen(false); // closes the modal
     try {
       const formData = new FormData();
       formData.append("name", form.name);
@@ -52,10 +47,17 @@ export default function AddItemForm({
         throw new Error("Request failed");
       }
 
+      if (editItem.id !== undefined) {
+        await fetch(`/api/delete-need-item/${editItem.id}`, {
+          method: "DELETE",
+        });
+      }
+
       const data = await res.json();
-      console.log("Backend response:", data);
-      setNeedItems([...needItems, data]); // flattens need items from parent and adds response item
-      setIsModalOpen(false); // closes the modal
+      setNeedItems([
+        ...needItems.filter((item) => editItem.id !== item.id),
+        data,
+      ]); // flattens need items from parent and adds response item
       addItem(data.id); // show toast notification
     } catch (err) {
       console.error("Error calling backend:", err);
@@ -65,7 +67,9 @@ export default function AddItemForm({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="bg-zinc-800 w-full max-w-lg rounded-lg p-6">
-        <h3 className="text-xl font-bold text-zinc-100 mb-4">Add Need Item</h3>
+        <h3 className="text-xl font-bold text-zinc-100 mb-4">
+          {editItem.name ? "Edit Need Item" : "Add Need Item"}
+        </h3>
 
         {/* Name */}
         <input
@@ -123,7 +127,7 @@ export default function AddItemForm({
             onClick={handleAddItemConfirmClick}
             disabled={!form.name}
           >
-            Request Need
+            {editItem.name ? "Edit Need" : "Request Need"}
           </button>
         </div>
       </div>
