@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { api } from "./routes";
+import { api } from "./controller/routes";
 import { serveStatic } from "@hono/node-server/serve-static";
 import path from "node:path";
 

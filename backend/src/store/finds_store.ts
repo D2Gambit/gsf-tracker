@@ -1,5 +1,6 @@
-import { db } from "../db";
-import { finds } from "../schema";
+import { eq } from "drizzle-orm/sql/expressions/conditions";
+import { db } from "../config/db";
+import { finds } from "../config/schema";
 
 export const createFind = async (data: {
   gsfGroupId: string;
