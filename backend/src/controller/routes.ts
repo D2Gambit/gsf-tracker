@@ -83,7 +83,6 @@ api.get("/have-items", async (c) => {
 
 api.post("/add-have-item", async (c) => {
   const body = await c.req.parseBody();
-  console.log(body);
   const result = await createHaveItem({
     gsfGroupId: body.gsfGroupId as string,
     name: body.name as string,
@@ -105,7 +104,6 @@ api.delete(`/delete-have-item/:id`, async (c) => {
 
 api.post("/reserve-have-item", async (c) => {
   const body = await c.req.parseBody();
-  console.log(body);
   const result = await updateHaveItemReservedFlag(
     body.id as string,
     (body.isReserved as string) === "true",
