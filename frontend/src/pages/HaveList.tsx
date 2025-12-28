@@ -1,94 +1,67 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Search, Edit, Trash2, Plus, Package } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import HaveItemForm from "../components/HaveItemForm";
 import { toast } from "react-toastify";
+import { set } from "react-hook-form";
 
 interface HaveItem {
   id: string;
-  itemName: string;
+  name: string;
   description: string;
   quality: "Normal" | "Magic" | "Rare" | "Set" | "Unique";
   foundBy: string;
   location: string;
-  dateFound: string;
+  createdAt: string;
   isReserved: boolean;
-  reservedFor?: string;
+  reservedBy?: string;
 }
 
 export default function HaveList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleAddHaveItemClick = () => {
+    setCurrentItem({});
     setIsModalOpen(true);
   };
 
+  const [currentItem, setCurrentItem] = useState<Partial<HaveItem>>({});
   const [searchTerm, setSearchTerm] = useState("");
-  const [haveItems, setHaveItems] = useState<HaveItem[]>([
-    {
-      id: "1",
-      itemName: "Tal Rasha's Mask",
-      description: "Corrupted +1 skills",
-      quality: "Set",
-      foundBy: "minted",
-      location: "Ancient Tunnels",
-      dateFound: "2025-01-15",
-      isReserved: false,
-    },
-    {
-      id: "2",
-      itemName: "Vipermagi",
-      description: "30% Res roll clean",
-      quality: "Unique",
-      foundBy: "TheCombinelord",
-      location: "Chaos Sanctuary",
-      dateFound: "2025-01-14",
-      isReserved: true,
-      reservedFor: "minted",
-    },
-    {
-      id: "3",
-      itemName: "Raven Frost",
-      description: "20 Dex / 250 AR roll",
-      quality: "Unique",
-      foundBy: "D2Gambit",
-      location: "Baal Run",
-      dateFound: "2025-01-13",
-      isReserved: false,
-    },
-    {
-      id: "4",
-      itemName: "Monarch",
-      description: "Superior 15% ED - Perfect Spirit base",
-      quality: "Normal",
-      foundBy: "Jaquar",
-      location: "Cow Level",
-      dateFound: "2025-01-12",
-      isReserved: true,
-      reservedFor: "Carizona",
-    },
-    {
-      id: "5",
-      itemName: "Sorc FCR Ammy",
-      description: "+2 cold skills, +10 all res, +10% FCR, +57 life",
-      quality: "Rare",
-      foundBy: "D2Gambit",
-      location: "The Pits",
-      dateFound: "2025-01-17",
-      isReserved: false,
-    },
-  ]);
+  const [haveItems, setHaveItems] = useState<HaveItem[]>([]);
+
+  useEffect(() => {
+    // Fetch have items from backend API
+    const fetchHaveItems = async () => {
+      try {
+        const response = await fetch("/api/have-items");
+        const data = await response.json();
+        setHaveItems(data);
+      } catch (error) {
+        console.error("Error fetching have items:", error);
+      }
+    };
+
+    fetchHaveItems();
+  }, []);
 
   const filteredItems = haveItems.filter(
     (item) =>
-      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const deleteItem = (id: string) => {
-    setHaveItems((items) => items.filter((item) => item.id !== id));
-    toast.success("Item removed from have list");
+  const deleteItem = async (id: string) => {
+    try {
+      const response = await fetch(`/api/delete-have-item/${id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      setHaveItems((items) => items.filter((item) => item.id !== id));
+      toast.success("Item removed from have list");
+    } catch (error) {
+      console.error("Error deleting selected item:", error);
+    }
   };
 
   const addItem = (id: string) => {
@@ -96,22 +69,44 @@ export default function HaveList() {
   };
 
   const editItem = (id: string) => {
-    toast.info("Edit functionality coming soon");
+    setCurrentItem(haveItems.find((item) => item.id === id) || {});
+    setIsModalOpen(true);
   };
 
-  const toggleReserved = (id: string) => {
-    setHaveItems((items) =>
-      items.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              isReserved: !item.isReserved,
-              reservedFor: item.isReserved ? undefined : "D2Gambit",
-            }
-          : item
-      )
-    );
-    toast.success("Reservation status updated");
+  const toggleReserved = async (id: string) => {
+    try {
+      var _currentItem = haveItems.find((item) => item.id === id);
+
+      const formData = new FormData();
+      formData.append("id", id);
+      formData.append("isReserved", (!_currentItem?.isReserved).toString());
+      formData.append("reservedBy", "D2Gambit"); // update to local storage user later
+
+      const res = await fetch("/api/reserve-have-item", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+
+      setHaveItems((items) =>
+        items.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                isReserved: !item.isReserved,
+                reservedBy: "D2Gambit", // update to local storage user later
+              }
+            : item
+        )
+      );
+      toast.success("Reservation status updated");
+    } catch (error) {
+      console.error("Error finding item to toggle reserved flag:", error);
+      return;
+    }
   };
 
   const getQualityColor = (quality: string) => {
@@ -190,7 +185,7 @@ export default function HaveList() {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">
-                          {item.itemName}
+                          {item.name}
                         </h3>
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getQualityColor(
@@ -205,8 +200,14 @@ export default function HaveList() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        {item.description}
+                      <p
+                        className={`text-sm mb-3 ${
+                          !item.description && "italic"
+                        }`}
+                      >
+                        {item.description
+                          ? item.description
+                          : "No description provided."}
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
                         <div className="space-y-1">
@@ -219,7 +220,7 @@ export default function HaveList() {
                           <div>
                             Location:{" "}
                             <span className="font-medium text-gray-700">
-                              {item.location}
+                              {item.location ? item.location : "N/A"}
                             </span>
                           </div>
                         </div>
@@ -227,14 +228,16 @@ export default function HaveList() {
                           <div>
                             Date found:{" "}
                             <span className="font-medium text-gray-700">
-                              {item.dateFound}
+                              {new Date(item.createdAt).toLocaleDateString(
+                                "en-CA"
+                              )}
                             </span>
                           </div>
-                          {item.isReserved && item.reservedFor && (
+                          {item.isReserved && item.reservedBy && (
                             <div>
                               Reserved for:{" "}
                               <span className="font-medium text-red-600">
-                                {item.reservedFor}
+                                {item.reservedBy}
                               </span>
                             </div>
                           )}
@@ -255,14 +258,14 @@ export default function HaveList() {
                       </button>
                       <button
                         onClick={() => editItem(item.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 rounded-lg transition-colors"
                         title="Edit item"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => deleteItem(item.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete item"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -278,11 +281,11 @@ export default function HaveList() {
         {/* Modal for Add Item */}
         {isModalOpen && (
           <HaveItemForm
-            isModalOpen={isModalOpen}
             setIsModalOpen={setIsModalOpen}
             haveItems={haveItems}
             setHaveItems={setHaveItems}
             addItem={addItem}
+            editItem={currentItem}
           />
         )}
 

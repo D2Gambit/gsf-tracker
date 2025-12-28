@@ -1,8 +1,6 @@
 import { eq } from "drizzle-orm/sql/expressions/conditions";
 import { db } from "../config/db";
 import { needItems } from "../config/schema";
-import { equal } from "node:assert";
-import { strictEqual } from "node:assert/strict";
 
 export const createNeedItem = async (data: {
   gsfGroupId: string;

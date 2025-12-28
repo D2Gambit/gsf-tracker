@@ -7,6 +7,12 @@ import {
   getNeedItems,
   updateNeedItemActiveFlag,
 } from "../store/needs_store";
+import {
+  createHaveItem,
+  deleteHaveItem,
+  getHaveItems,
+  updateHaveItemReservedFlag,
+} from "../store/haves_store";
 
 export const api = new Hono();
 
@@ -71,11 +77,40 @@ api.post("/is-active-need-item", async (c) => {
   return c.json(result[0]);
 });
 
+api.get("/have-items", async (c) => {
+  return c.json(await getHaveItems());
+});
+
 api.post("/add-have-item", async (c) => {
-  // later: parse body, save file, write DB row
-  return c.json({
-    success: true,
-    message: "Add have item endpoint hit",
-    timestamp: new Date().toISOString(),
+  const body = await c.req.parseBody();
+  console.log(body);
+  const result = await createHaveItem({
+    gsfGroupId: body.gsfGroupId as string,
+    name: body.name as string,
+    description: body.description as string,
+    foundBy: body.foundBy as string,
+    quality: body.quality as string,
+    createdAt: new Date(),
+    isReserved: (body.isReserved as string) === "true",
+    location: body.location as string,
+    reservedBy: body.reservedBy as string,
   });
+
+  return c.json(result[0]);
+});
+
+api.delete(`/delete-have-item/:id`, async (c) => {
+  return c.json(await deleteHaveItem(c.req.param("id")));
+});
+
+api.post("/reserve-have-item", async (c) => {
+  const body = await c.req.parseBody();
+  console.log(body);
+  const result = await updateHaveItemReservedFlag(
+    body.id as string,
+    (body.isReserved as string) === "true",
+    body.reservedBy as string
+  );
+
+  return c.json(result[0]);
 });

@@ -18,3 +18,16 @@ export const needItems = pgTable("gsfneeds", {
   isActive: boolean("is_active").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const haveItems = pgTable("gsfhaves", {
+  id: serial("id").primaryKey(),
+  gsfGroupId: text("gsf_group_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  foundBy: text("found_by").notNull(),
+  location: text("location"),
+  isReserved: boolean("is_reserved").notNull(),
+  reservedBy: text("reserved_by"),
+  quality: text("quality").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
