@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 type AddHaveItemForm = {
-  itemName: string;
+  name: string;
   description: string;
   foundBy: string;
   quality: string;
@@ -9,52 +9,67 @@ type AddHaveItemForm = {
 };
 
 export default function HaveItemForm({
-  isModalOpen,
   setIsModalOpen,
   haveItems,
   setHaveItems,
   addItem,
+  editItem,
 }: {
-  isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   haveItems: any[];
   setHaveItems: React.Dispatch<React.SetStateAction<any[]>>;
   addItem: (id: string) => void;
+  editItem: any;
 }) {
   const [form, setForm] = useState<AddHaveItemForm>({
-    itemName: "",
-    description: "",
-    foundBy: "",
-    quality: "",
-    location: "",
+    name: editItem.name,
+    description: editItem.description,
+    foundBy: editItem.foundBy,
+    quality: editItem.quality,
+    location: editItem.location,
   });
 
   const handleAddHaveItemConfirmClick = async () => {
+    setIsModalOpen(false); // closes the modal
+
+    const formData = new FormData();
+    formData.append("gsfGroupId", "CariGSF"); // update to local storage group later
+    formData.append("name", form.name);
+    formData.append(
+      "description",
+      form.description ? form.description : "No description provided."
+    );
+    formData.append("foundBy", form.foundBy);
+    formData.append("quality", form.quality ? form.quality : "No Quality");
+    formData.append("location", form.location ? form.location : "N/A");
+
+    if (editItem.id !== undefined) {
+      formData.append("isReserved", editItem.isReserved.toString());
+      formData.append("reservedBy", editItem.reservedBy);
+    }
+
     try {
       const res = await fetch("/api/add-have-item", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
+        body: formData,
       });
 
       if (!res.ok) {
         throw new Error("Request failed");
       }
 
-      setHaveItems([
-        ...haveItems,
-        {
-          ...form,
-          dateFound: new Date(Date.now()).toLocaleDateString("en-CA"),
-        },
-      ]);
-      setIsModalOpen(false);
-      addItem("1");
+      if (editItem.id !== undefined) {
+        await fetch(`/api/delete-have-item/${editItem.id}`, {
+          method: "DELETE",
+        });
+      }
+
       const data = await res.json();
-      console.log("Form Data", form);
-      console.log("Backend response:", data);
+      setHaveItems([
+        ...haveItems.filter((item) => editItem.id !== item.id),
+        data,
+      ]);
+      addItem(data.id);
     } catch (err) {
       console.error("Error calling backend:", err);
     }
@@ -63,15 +78,17 @@ export default function HaveItemForm({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="bg-zinc-800 w-full max-w-lg rounded-lg p-6">
-        <h3 className="text-xl font-bold text-zinc-100 mb-4">Add Have Item</h3>
+        <h3 className="text-xl font-bold text-zinc-100 mb-4">
+          {editItem.name ? "Edit Have Item" : "Add Have Item"}
+        </h3>
 
         {/* Name */}
         <input
           type="text"
           placeholder="Item Name"
           className="w-full mb-3 p-2 rounded bg-zinc-700 text-zinc-100"
-          value={form.itemName}
-          onChange={(e) => setForm({ ...form, itemName: e.target.value })}
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
 
         {/* Description */}
@@ -130,9 +147,9 @@ export default function HaveItemForm({
           <button
             className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
             onClick={handleAddHaveItemConfirmClick}
-            disabled={!form.itemName}
+            disabled={!form.name}
           >
-            Add Have Item
+            {editItem.name ? "Edit Have Item" : "Add Have Item"}
           </button>
         </div>
       </div>
