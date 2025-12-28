@@ -2,18 +2,20 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Users } from "lucide-react";
 import { toast } from "react-toastify";
+import { useAuth } from "../../AuthContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const [gemActivated, setGemActivated] = useState(false);
 
+  const { isAuthenticated } = useAuth();
+
   const navigation = [
     { name: "Group Organizer", href: "/" },
     { name: "Loot Showcase", href: "/loot-showcase" },
     { name: "Need List", href: "/need-list" },
     { name: "Have List", href: "/have-list" },
-    { name: "Sign Up", href: "/signup" },
   ];
 
   const isActive = (href: string) => location.pathname === href;
@@ -45,19 +47,20 @@ const Header = () => {
           </div>
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "text-red-600 border-b-2 border-red-600"
-                    : "text-zinc-800 hover:text-red-600"
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {isAuthenticated &&
+              navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? "text-red-600 border-b-2 border-red-600"
+                      : "text-zinc-800 hover:text-red-600"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
           </nav>
 
           {/* Mobile menu button */}

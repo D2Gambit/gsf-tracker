@@ -11,6 +11,7 @@ import SignUp from "./src/pages/SignUp";
 import NeedList from "./src/pages/NeedList";
 import HaveList from "./src/pages/HaveList";
 import NotFound from "./src/pages/NotFound";
+import Login from "./src/pages/Login";
 
 const App: React.FC = () => {
   return (
@@ -19,6 +20,7 @@ const App: React.FC = () => {
         <main className="min-h-screen font-inter">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/need-list" element={<NeedList />} />
             <Route path="/have-list" element={<HaveList />} />
