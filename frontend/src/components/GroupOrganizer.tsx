@@ -14,6 +14,7 @@ interface Player {
   preferredTimezone: string;
   preferredClass: string;
   preferredSecondaryClass: string;
+  discordName: string;
 }
 
 const GroupOrganizer = () => {
