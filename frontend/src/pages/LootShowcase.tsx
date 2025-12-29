@@ -3,6 +3,7 @@ import { Upload, Calendar } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import UploadFindForm from "../components/UploadFindForm";
+import { useAuth } from "../../AuthContext";
 
 interface LootItem {
   id: string;
@@ -26,6 +27,8 @@ export default function LootShowcase() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { session } = useAuth();
+
   const handleUploadClick = () => {
     setIsModalOpen(true);
   };
@@ -34,7 +37,7 @@ export default function LootShowcase() {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/finds");
+      const res = await fetch(`/api/finds/${session?.gsfGroupId}`);
       if (!res.ok) throw new Error("Failed to fetch finds");
 
       const data = await res.json();
@@ -99,11 +102,15 @@ export default function LootShowcase() {
                     <h3 className="font-semibold text-gray-900 mb-2">
                       {item.name}
                     </h3>
-                    {item.description && (
-                      <p className="text-sm text-gray-600 mb-3">
-                        {item.description}
-                      </p>
-                    )}
+                    <p
+                      className={`text-sm text-gray-600 mb-3 ${
+                        !item.description && "italic"
+                      }`}
+                    >
+                      {item.description
+                        ? item.description
+                        : "No description provided."}
+                    </p>
                     <div className="flex items-center justify-between text-sm text-gray-500">
                       <span>
                         Found by:{" "}

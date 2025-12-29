@@ -1,9 +1,10 @@
 import React, { useState } from "react";
+import { useAuth } from "../../AuthContext";
+import { parse } from "zod/v4/core";
 
 type AddHaveItemForm = {
   name: string;
   description: string;
-  foundBy: string;
   quality: string;
   location: string;
 };
@@ -24,22 +25,26 @@ export default function HaveItemForm({
   const [form, setForm] = useState<AddHaveItemForm>({
     name: editItem.name,
     description: editItem.description,
-    foundBy: editItem.foundBy,
     quality: editItem.quality,
     location: editItem.location,
   });
+
+  const { session } = useAuth();
+
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
   const handleAddHaveItemConfirmClick = async () => {
     setIsModalOpen(false); // closes the modal
 
     const formData = new FormData();
-    formData.append("gsfGroupId", "CariGSF"); // update to local storage group later
+    formData.append("gsfGroupId", session?.gsfGroupId?.toString() || "Unknown");
     formData.append("name", form.name);
     formData.append(
       "description",
       form.description ? form.description : "No description provided."
     );
-    formData.append("foundBy", form.foundBy);
+    formData.append("foundBy", parsedUserInfo.accountName);
     formData.append("quality", form.quality ? form.quality : "No Quality");
     formData.append("location", form.location ? form.location : "N/A");
 
@@ -117,19 +122,10 @@ export default function HaveItemForm({
           <option value="Set">Set</option>
         </select>
 
-        {/* Found By */}
-        <input
-          type="text"
-          placeholder="Found by"
-          className="w-full mb-4 p-2 rounded bg-zinc-700 text-zinc-100"
-          value={form.foundBy}
-          onChange={(e) => setForm({ ...form, foundBy: e.target.value })}
-        />
-
         {/* Location */}
         <input
           type="text"
-          placeholder="Location"
+          placeholder="Location Found"
           className="w-full mb-4 p-2 rounded bg-zinc-700 text-zinc-100"
           value={form.location}
           onChange={(e) => setForm({ ...form, location: e.target.value })}

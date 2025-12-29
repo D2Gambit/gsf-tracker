@@ -9,8 +9,9 @@ import {
 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import AddItemForm from "../components/AddItemForm";
+import AddNeedItemForm from "../components/AddNeedItemForm";
 import { toast } from "react-toastify";
+import { useAuth } from "../../AuthContext";
 
 interface NeedItem {
   id: string;
@@ -34,11 +35,16 @@ export default function NeedList() {
   const [needItems, setNeedItems] = useState<NeedItem[]>([]);
   const [currentItem, setCurrentItem] = useState<Partial<NeedItem>>({});
 
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+
+  const { session } = useAuth();
+
   useEffect(() => {
     // Fetch need items from backend API
     const fetchNeedItems = async () => {
       try {
-        const response = await fetch("/api/need-items");
+        const response = await fetch(`/api/need-items/${session?.gsfGroupId}`);
         const data = await response.json();
         setNeedItems(data);
       } catch (error) {
@@ -63,7 +69,7 @@ export default function NeedList() {
       formData.append("isActive", _currentItem.isActive ? "false" : "true");
       formData.append("id", id);
 
-      const res = await fetch("/api/is-active-need-item", {
+      const res = await fetch("/api/update-is-active-need-item", {
         method: "POST",
         body: formData,
       });
@@ -220,41 +226,43 @@ export default function NeedList() {
                       </div>
                     </div>
                     <div className="flex flex-col items-center space-x-4">
-                      <div className="flex items-center space-x-2 ml-4">
-                        <button
-                          onClick={() => toggleActive(item.id)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            item.isActive
-                              ? "text-green-600 hover:bg-green-100"
-                              : "text-gray-400 hover:bg-gray-100 hover:text-gray-500"
-                          }`}
-                          title={
-                            item.isActive
-                              ? "Mark as inactive"
-                              : "Mark as active"
-                          }
-                        >
-                          {item.isActive ? (
-                            <ToggleRight className="h-5 w-5" />
-                          ) : (
-                            <ToggleLeft className="h-5 w-5" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => editItem(item.id)}
-                          className="p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 rounded-lg transition-colors"
-                          title="Edit item"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteItem(item.id)}
-                          className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete item"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
+                      {parsedUserInfo.accountName === item.requestedBy && (
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            onClick={() => toggleActive(item.id)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              item.isActive
+                                ? "text-green-600 hover:bg-green-100"
+                                : "text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+                            }`}
+                            title={
+                              item.isActive
+                                ? "Mark as inactive"
+                                : "Mark as active"
+                            }
+                          >
+                            {item.isActive ? (
+                              <ToggleRight className="h-5 w-5" />
+                            ) : (
+                              <ToggleLeft className="h-5 w-5" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => editItem(item.id)}
+                            className="p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 rounded-lg transition-colors"
+                            title="Edit item"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteItem(item.id)}
+                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete item"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
                       <br />
                       <span className="">
                         Added:{" "}
@@ -272,7 +280,7 @@ export default function NeedList() {
 
         {/* Modal for Add Item */}
         {isModalOpen && (
-          <AddItemForm
+          <AddNeedItemForm
             setIsModalOpen={setIsModalOpen}
             needItems={needItems}
             setNeedItems={setNeedItems}

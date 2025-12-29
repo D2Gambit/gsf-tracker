@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm/sql/expressions/conditions";
+import { desc } from "drizzle-orm";
 import { db } from "../config/db";
 import { haveItems } from "../config/schema";
 
@@ -16,8 +17,12 @@ export const createHaveItem = async (data: {
   return db.insert(haveItems).values(data).returning();
 };
 
-export const getHaveItems = async () => {
-  return db.select().from(haveItems).orderBy(haveItems.createdAt);
+export const getHaveItems = async (gsfGroupId: string) => {
+  return db
+    .select()
+    .from(haveItems)
+    .where(eq(haveItems.gsfGroupId, gsfGroupId))
+    .orderBy(desc(haveItems.createdAt));
 };
 
 export const deleteHaveItem = async (id: string) => {

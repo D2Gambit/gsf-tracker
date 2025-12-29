@@ -27,8 +27,8 @@ api.get("/health", (c) => {
   return c.json({ ok: true });
 });
 
-api.get("/finds", async (c) => {
-  const finds = await getLatestFinds();
+api.get("/finds/:gsfGroupId", async (c) => {
+  const finds = await getLatestFinds(c.req.param("gsfGroupId"));
   return c.json(finds);
 });
 
@@ -50,8 +50,8 @@ api.post("/upload-finds", async (c) => {
   return c.json(result[0]);
 });
 
-api.get("/need-items", async (c) => {
-  return c.json(await getNeedItems());
+api.get("/need-items/:gsfGroupId", async (c) => {
+  return c.json(await getNeedItems(c.req.param("gsfGroupId")));
 });
 
 api.delete(`/delete-need-item/:id`, async (c) => {
@@ -74,7 +74,7 @@ api.post("/add-need-item", async (c) => {
   return c.json(result[0]);
 });
 
-api.post("/is-active-need-item", async (c) => {
+api.post("/update-is-active-need-item", async (c) => {
   const body = await c.req.parseBody();
   const result = await updateNeedItemActiveFlag(
     body.id as string,
@@ -84,8 +84,8 @@ api.post("/is-active-need-item", async (c) => {
   return c.json(result[0]);
 });
 
-api.get("/have-items", async (c) => {
-  return c.json(await getHaveItems());
+api.get("/have-items/:gsfGroupId", async (c) => {
+  return c.json(await getHaveItems(c.req.param("gsfGroupId")));
 });
 
 api.post("/add-have-item", async (c) => {

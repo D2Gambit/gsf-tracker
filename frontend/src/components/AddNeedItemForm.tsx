@@ -1,13 +1,13 @@
 import React, { useState } from "react";
+import { useAuth } from "../../AuthContext";
 
 type NeedItemForm = {
   name: string;
   description: string;
-  requestedBy: string;
   priority: string;
 };
 
-export default function AddItemForm({
+export default function AddNeedItemForm({
   setIsModalOpen,
   needItems,
   setNeedItems,
@@ -23,9 +23,13 @@ export default function AddItemForm({
   const [form, setForm] = useState<NeedItemForm>({
     name: editItem.name,
     description: editItem.description,
-    requestedBy: editItem.requestedBy,
     priority: editItem.priority,
   });
+
+  const { session } = useAuth();
+
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
   const handleAddItemConfirmClick = async () => {
     setIsModalOpen(false); // closes the modal
@@ -33,10 +37,10 @@ export default function AddItemForm({
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("description", form.description);
-      formData.append("requestedBy", form.requestedBy);
+      formData.append("requestedBy", parsedUserInfo.accountName);
       formData.append("priority", form.priority);
       formData.append("isActive", "true");
-      formData.append("gsfGroupId", "CariGSF");
+      formData.append("gsfGroupId", session?.gsfGroupId ?? "Unknown");
 
       const res = await fetch("/api/add-need-item", {
         method: "POST",
@@ -55,8 +59,8 @@ export default function AddItemForm({
 
       const data = await res.json();
       setNeedItems([
-        ...needItems.filter((item) => editItem.id !== item.id),
         data,
+        ...needItems.filter((item) => editItem.id !== item.id),
       ]); // flattens need items from parent and adds response item
       addItem(data.id); // show toast notification
     } catch (err) {
@@ -103,15 +107,6 @@ export default function AddItemForm({
           <option value="Medium">Medium</option>
           <option value="Low">Low</option>
         </select>
-
-        {/* Requested By */}
-        <input
-          type="text"
-          placeholder="Requested by"
-          className="w-full mb-4 p-2 rounded bg-zinc-700 text-zinc-100"
-          value={form.requestedBy}
-          onChange={(e) => setForm({ ...form, requestedBy: e.target.value })}
-        />
 
         {/* Actions */}
         <div className="flex justify-end space-x-3">

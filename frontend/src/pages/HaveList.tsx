@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import HaveItemForm from "../components/HaveItemForm";
 import { toast } from "react-toastify";
 import { set } from "react-hook-form";
+import { useAuth } from "../../AuthContext";
 
 interface HaveItem {
   id: string;
@@ -30,11 +31,16 @@ export default function HaveList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [haveItems, setHaveItems] = useState<HaveItem[]>([]);
 
+  const { session } = useAuth();
+
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+
   useEffect(() => {
     // Fetch have items from backend API
     const fetchHaveItems = async () => {
       try {
-        const response = await fetch("/api/have-items");
+        const response = await fetch(`/api/have-items/${session?.gsfGroupId}`);
         const data = await response.json();
         setHaveItems(data);
       } catch (error) {
@@ -80,7 +86,7 @@ export default function HaveList() {
       const formData = new FormData();
       formData.append("id", id);
       formData.append("isReserved", (!_currentItem?.isReserved).toString());
-      formData.append("reservedBy", "D2Gambit"); // update to local storage user later
+      formData.append("reservedBy", parsedUserInfo.accountName);
 
       const res = await fetch("/api/reserve-have-item", {
         method: "POST",
@@ -97,7 +103,7 @@ export default function HaveList() {
             ? {
                 ...item,
                 isReserved: !item.isReserved,
-                reservedBy: "D2Gambit", // update to local storage user later
+                reservedBy: parsedUserInfo.accountName,
               }
             : item
         )
@@ -246,30 +252,38 @@ export default function HaveList() {
                     </div>
 
                     <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() => toggleReserved(item.id)}
-                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                          item.isReserved
-                            ? "bg-red-100 text-red-800 hover:bg-red-200"
-                            : "bg-green-100 text-green-800 hover:bg-green-200"
-                        }`}
-                      >
-                        {item.isReserved ? "Unreserve" : "Reserve"}
-                      </button>
-                      <button
-                        onClick={() => editItem(item.id)}
-                        className="p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 rounded-lg transition-colors"
-                        title="Edit item"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteItem(item.id)}
-                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete item"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {parsedUserInfo.accountName !== item.foundBy &&
+                        (!item.isReserved ||
+                          parsedUserInfo.accountName === item.reservedBy) && (
+                          <button
+                            onClick={() => toggleReserved(item.id)}
+                            className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                              item.isReserved
+                                ? "bg-red-100 text-red-800 hover:bg-red-200"
+                                : "bg-green-100 text-green-800 hover:bg-green-200"
+                            }`}
+                          >
+                            {item.isReserved ? "Unreserve" : "Reserve"}
+                          </button>
+                        )}
+                      {parsedUserInfo.accountName === item.foundBy && (
+                        <button
+                          onClick={() => editItem(item.id)}
+                          className="p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 rounded-lg transition-colors"
+                          title="Edit item"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
+                      {parsedUserInfo.accountName === item.foundBy && (
+                        <button
+                          onClick={() => deleteItem(item.id)}
+                          className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete item"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
