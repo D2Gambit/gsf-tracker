@@ -6,13 +6,17 @@ import { UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { toast } from "react-toastify";
+import { useAuth } from "../../AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const signUpSchema = z.object({
-  hasPlayedGSF: z.coerce.boolean(),
+  hasPlayedGsf: z.enum(["true", "false"], {
+    required_error: "Please select an option",
+  }),
   accountName: z.string().min(3, "Account name must be at least 3 characters"),
   characterName: z
     .string()
-    .min(2, "Character name must be at least 2 characters"),
+    .min(3, "Character name must be at least 3 characters"),
   discordName: z.string().min(3, "Discord name must be at least 3 characters"),
   timezone: z.string().min(1, "Please select a timezone"),
   primaryClass: z.string().min(1, "Please select a primary class"),
@@ -63,6 +67,10 @@ export default function SignUp() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 2;
 
+  const { session } = useAuth();
+
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -75,10 +83,49 @@ export default function SignUp() {
 
   const onSubmit = async (data: SignUpForm) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!session) {
+        toast.error("Session not found. Please log in again.");
+        return;
+      }
+
+      var formData = new FormData();
+      formData.append("gsfGroupId", session.gsfGroupId);
+      formData.append("accountName", data.accountName);
+      formData.append("characterName", data.characterName);
+      formData.append("hasPlayedGsf", data.hasPlayedGsf);
+      formData.append("preferredTimezone", data.timezone);
+      formData.append("preferredClass", data.primaryClass);
+      formData.append("preferredSecondaryClass", data.secondaryClass);
+      formData.append("discordName", data.discordName);
+      if (sessionStorage.getItem("groupOrganizer") === "true") {
+        formData.append("role", "organizer");
+      } else {
+        formData.append("role", "member");
+      }
+      const res = await fetch("/api/create-member", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+
       toast.success("Account added to GSF!");
-      console.log("Sign up data:", data);
+      const resData = await res.json();
+      localStorage.setItem(
+        "gsfUserInfo",
+        JSON.stringify({
+          gsfGroupId: session.gsfGroupId,
+          role:
+            sessionStorage.getItem("groupOrganizer") === "true"
+              ? "organizer"
+              : "member",
+          accountName: data.accountName,
+          userInfo: resData,
+        })
+      );
+      navigate("/");
     } catch (error) {
       toast.error("Sign up failed. Please try again.");
     }
@@ -102,9 +149,9 @@ export default function SignUp() {
   const getFieldsForStep = (step: number): (keyof SignUpForm)[] => {
     switch (step) {
       case 1:
-        return ["hasPlayedGSF", "accountName", "characterName"];
+        return ["hasPlayedGsf", "accountName", "characterName", "discordName"];
       case 2:
-        return ["discordName", "timezone", "primaryClass", "secondaryClass"];
+        return ["timezone", "primaryClass", "secondaryClass"];
       default:
         return [];
     }
@@ -122,22 +169,27 @@ export default function SignUp() {
               <div className="flex space-x-4">
                 <label className="flex items-center">
                   <input
-                    {...register("hasPlayedGSF")}
+                    {...register("hasPlayedGsf")}
                     type="radio"
-                    value="false"
+                    value="true"
                     className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
                   />
                   <span className="ml-2 text-sm text-gray-400">Yes</span>
                 </label>
                 <label className="flex items-center">
                   <input
-                    {...register("hasPlayedGSF")}
+                    {...register("hasPlayedGsf")}
                     type="radio"
-                    value="true"
+                    value="false"
                     className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
                   />
                   <span className="ml-2 text-sm text-gray-400">No</span>
                 </label>
+                {errors.hasPlayedGsf && (
+                  <p className="mt-1 text-sm text-red-600">
+                    Please select an option.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -182,12 +234,7 @@ export default function SignUp() {
                 </p>
               )}
             </div>
-          </div>
-        );
 
-      case 2:
-        return (
-          <div className="space-y-4">
             <div>
               <label
                 htmlFor="discordName"
@@ -200,7 +247,7 @@ export default function SignUp() {
                 type="text"
                 id="discordName"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                placeholder="username#1234"
+                placeholder="Your discord name"
               />
               {errors.discordName && (
                 <p className="mt-1 text-sm text-red-600">
@@ -208,7 +255,12 @@ export default function SignUp() {
                 </p>
               )}
             </div>
+          </div>
+        );
 
+      case 2:
+        return (
+          <div className="space-y-4">
             <div>
               <label
                 htmlFor="timezone"

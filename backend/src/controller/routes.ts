@@ -13,6 +13,12 @@ import {
   getHaveItems,
   updateHaveItemReservedFlag,
 } from "../store/haves_store";
+import { createGroup, validateGroupLogin } from "../store/groups_store";
+import {
+  createMember,
+  deleteMember,
+  getMembersByGroup,
+} from "../store/members_store";
 
 export const api = new Hono();
 
@@ -111,4 +117,53 @@ api.post("/reserve-have-item", async (c) => {
   );
 
   return c.json(result[0]);
+});
+
+api.post("/create-group", async (c) => {
+  const body = await c.req.parseBody();
+  const result = await createGroup({
+    gsfGroupId: body.gsfGroupId as string,
+    password: body.password as string,
+    createdAt: new Date(),
+  });
+
+  return c.json(result[0]);
+});
+
+api.post("/login", async (c) => {
+  const body = await c.req.parseBody();
+  const result = await validateGroupLogin(
+    body.gsfGroupId as string,
+    body.password as string
+  );
+
+  return c.json(result);
+});
+
+api.post("/create-member", async (c) => {
+  const body = await c.req.parseBody();
+  const result = await createMember({
+    gsfGroupId: body.gsfGroupId as string,
+    accountName: body.accountName as string,
+    characterName: body.characterName as string,
+    role: body.role as string,
+    hasPlayedGsf: (body.hasPlayedGsf as string) === "true",
+    createdAt: new Date(),
+    preferredTimezone: body.preferredTimezone as string,
+    preferredClass: body.preferredClass as string,
+    preferredSecondaryClass: body.preferredSecondaryClass as string,
+    discordName: body.discordName as string,
+  });
+
+  return c.json(result[0]);
+});
+
+api.get("/members/:gsfGroupId", async (c) => {
+  const gsfGroupId = c.req.param("gsfGroupId");
+  const result = await getMembersByGroup(gsfGroupId);
+  return c.json(result);
+});
+
+api.delete(`/delete-member/:id`, async (c) => {
+  return c.json(await deleteMember(c.req.param("id")));
 });

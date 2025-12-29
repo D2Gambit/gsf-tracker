@@ -11,18 +11,29 @@ import SignUp from "./src/pages/SignUp";
 import NeedList from "./src/pages/NeedList";
 import HaveList from "./src/pages/HaveList";
 import NotFound from "./src/pages/NotFound";
+import Login from "./src/pages/Login";
+import { useAuth } from "./AuthContext";
 
 const App: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <Theme appearance="inherit" radius="large" scaling="100%">
       <Router>
         <main className="min-h-screen font-inter">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/need-list" element={<NeedList />} />
-            <Route path="/have-list" element={<HaveList />} />
-            <Route path="/loot-showcase" element={<LootShowcase />} />
+            {isAuthenticated && <Route path="/login" element={<Login />} />}
+            {isAuthenticated && <Route path="/signup" element={<SignUp />} />}
+            {isAuthenticated && (
+              <Route path="/need-list" element={<NeedList />} />
+            )}
+            {isAuthenticated && (
+              <Route path="/have-list" element={<HaveList />} />
+            )}
+            {isAuthenticated && (
+              <Route path="/loot-showcase" element={<LootShowcase />} />
+            )}
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ToastContainer

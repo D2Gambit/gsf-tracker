@@ -1,22 +1,32 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Users } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, Users, LogOut } from "lucide-react";
 import { toast } from "react-toastify";
+import { useAuth } from "../../AuthContext";
+import {} from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const [gemActivated, setGemActivated] = useState(false);
 
+  const navigate = useNavigate();
+
+  const { isAuthenticated, logout } = useAuth();
+
   const navigation = [
     { name: "Group Organizer", href: "/" },
     { name: "Loot Showcase", href: "/loot-showcase" },
     { name: "Need List", href: "/need-list" },
     { name: "Have List", href: "/have-list" },
-    { name: "Sign Up", href: "/signup" },
   ];
 
   const isActive = (href: string) => location.pathname === href;
+
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   return (
     <header className="bg-zinc-300 border-b border-gray-200 sticky top-0 z-50">
@@ -45,20 +55,30 @@ const Header = () => {
           </div>
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "text-red-600 border-b-2 border-red-600"
-                    : "text-zinc-800 hover:text-red-600"
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {isAuthenticated &&
+              navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? "text-red-600 border-b-2 border-red-600"
+                      : "text-zinc-800 hover:text-red-600"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
           </nav>
+          {isAuthenticated && (
+            <button
+              onClick={handleLogout}
+              className="flex justify-center items-center px-3 py-2 text-sm font-medium text-zinc-800 hover:text-red-600"
+            >
+              <LogOut className="pr-1 h-6 w-6" />
+              Logout
+            </button>
+          )}
 
           {/* Mobile menu button */}
           <button
@@ -75,7 +95,7 @@ const Header = () => {
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
+        {isAuthenticated && isMenuOpen && (
           <nav className="md:hidden py-4 border-t border-gray-200">
             {navigation.map((item) => (
               <Link
