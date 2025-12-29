@@ -31,3 +31,26 @@ export const haveItems = pgTable("gsfhaves", {
   quality: text("quality").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const gsfGroups = pgTable("gsfgroups", {
+  id: serial("id").primaryKey(),
+  gsfGroupId: text("gsf_group_id").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const gsfMembers = pgTable("gsfmembers", {
+  id: serial("id").primaryKey(),
+  gsfGroupId: text("gsf_group_id").notNull(),
+  accountName: text("account_name").notNull(),
+  characterName: text("character_name").notNull(),
+  role: text("role").notNull().default("member"),
+  hasPlayedGsf: boolean("has_played_gsf").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  preferredTimezone: text("preferred_timezone").notNull().default("UTC"),
+  preferredClass: text("preferred_class").notNull().default("Amazon"),
+  preferredSecondaryClass: text("preferred_secondary_class")
+    .notNull()
+    .default("None"),
+  discordName: text("discord_name").notNull().default(""),
+});

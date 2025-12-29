@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { UserPlus, Users, Lock } from "lucide-react";
 import { toast } from "react-toastify";
+import { useAuth } from "../../AuthContext";
 
 const createGSFSchema = z
   .object({
@@ -28,13 +29,35 @@ export default function SignUp() {
     resolver: zodResolver(createGSFSchema),
   });
 
+  const { login, isAuthenticated } = useAuth();
+
   const onSubmit = async (data: CreateGSFForm) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success("Group created successfully!");
+      const formData = new FormData();
+      formData.append("gsfGroupId", data.groupName);
+      formData.append("password", data.groupPassword);
+
+      const res = await fetch("/api/create-group", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+
+      sessionStorage.setItem("groupOrganizer", true.toString());
+
+      login(
+        formData.get("gsfGroupId") as string,
+        formData.get("password") as string
+      );
+
+      if (isAuthenticated) {
+        toast.success("Group created and logged in successfully!");
+      }
     } catch (error) {
-      toast.error("Sign up failed. Please try again.");
+      toast.error("Group creation failed. Please try again.");
     }
   };
 

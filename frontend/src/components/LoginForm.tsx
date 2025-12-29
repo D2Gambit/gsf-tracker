@@ -1,9 +1,9 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-toastify";
-import { LogIn, Lock, Users } from "lucide-react";
+import { LogIn, Lock, Users, Loader } from "lucide-react";
 import { useAuth } from "../../AuthContext";
 
 const loginSchema = z.object({
@@ -28,15 +28,20 @@ export default function LoginForm({
     resolver: zodResolver(loginSchema),
   });
 
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+
+  const [invalidLogin, setInvalidLogin] = React.useState(false);
 
   const onSubmit = async (data: LoginForm) => {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success("Login successful!");
-      login();
-      console.log("Login data:", data);
+      await login(data.groupName, data.password);
+      if (isAuthenticated) {
+        toast.success("Login successful!");
+      } else {
+        setInvalidLogin(true);
+      }
     } catch (error) {
       toast.error("Login failed. Please try again.");
     }
@@ -132,13 +137,25 @@ export default function LoginForm({
               </label>
             </div>
           </div>
-
+          {invalidLogin && (
+            <div className="flex mb-4">
+              <p className="mt-1 text-sm text-red-600">
+                Invalid group name or password.
+              </p>
+            </div>
+          )}
           <button
             type="submit"
             disabled={isSubmitting}
             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Signing in..." : "Sign in"}
+            {isSubmitting ? (
+              <div className="flex justify-center">
+                <Loader className="animate-spin mr-2" /> Signing in...
+              </div>
+            ) : (
+              "Sign in"
+            )}
           </button>
         </form>
       </div>
