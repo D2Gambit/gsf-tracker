@@ -10,7 +10,9 @@ import { useAuth } from "../../AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const signUpSchema = z.object({
-  hasPlayedGSF: z.coerce.boolean(),
+  hasPlayedGsf: z.enum(["true", "false"], {
+    required_error: "Please select an option",
+  }),
   accountName: z.string().min(3, "Account name must be at least 3 characters"),
   characterName: z
     .string()
@@ -86,11 +88,13 @@ export default function SignUp() {
         return;
       }
 
+      console.log("form data:", data);
+
       var formData = new FormData();
       formData.append("gsfGroupId", session.gsfGroupId);
       formData.append("accountName", data.accountName);
       formData.append("characterName", data.characterName);
-      formData.append("hasPlayedGsf", data.hasPlayedGSF.toString());
+      formData.append("hasPlayedGsf", data.hasPlayedGsf);
       formData.append("preferredTimezone", data.timezone);
       formData.append("preferredClass", data.primaryClass);
       formData.append("preferredSecondaryClass", data.secondaryClass);
@@ -110,6 +114,7 @@ export default function SignUp() {
       }
 
       toast.success("Account added to GSF!");
+      const resData = await res.json();
       localStorage.setItem(
         "gsfUserInfo",
         JSON.stringify({
@@ -118,9 +123,8 @@ export default function SignUp() {
             sessionStorage.getItem("groupOrganizer") === "true"
               ? "organizer"
               : "member",
-          token: session.token,
-          accountName: session.accountName,
-          id: session.id,
+          accountName: data.accountName,
+          userInfo: resData,
         })
       );
       navigate("/");
@@ -147,7 +151,7 @@ export default function SignUp() {
   const getFieldsForStep = (step: number): (keyof SignUpForm)[] => {
     switch (step) {
       case 1:
-        return ["hasPlayedGSF", "accountName", "characterName", "discordName"];
+        return ["hasPlayedGsf", "accountName", "characterName", "discordName"];
       case 2:
         return ["timezone", "primaryClass", "secondaryClass"];
       default:
@@ -167,22 +171,27 @@ export default function SignUp() {
               <div className="flex space-x-4">
                 <label className="flex items-center">
                   <input
-                    {...register("hasPlayedGSF")}
+                    {...register("hasPlayedGsf")}
                     type="radio"
-                    value="false"
+                    value="true"
                     className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
                   />
                   <span className="ml-2 text-sm text-gray-400">Yes</span>
                 </label>
                 <label className="flex items-center">
                   <input
-                    {...register("hasPlayedGSF")}
+                    {...register("hasPlayedGsf")}
                     type="radio"
-                    value="true"
+                    value="false"
                     className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
                   />
                   <span className="ml-2 text-sm text-gray-400">No</span>
                 </label>
+                {errors.hasPlayedGsf && (
+                  <p className="mt-1 text-sm text-red-600">
+                    Please select an option.
+                  </p>
+                )}
               </div>
             </div>
 

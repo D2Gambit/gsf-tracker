@@ -47,10 +47,12 @@ export const gsfMembers = pgTable("gsfmembers", {
   role: text("role").notNull().default("member"),
   hasPlayedGsf: boolean("has_played_gsf").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
-  preferredTimezone: text("preferred_timezone").notNull().default("UTC"),
+  preferredTimezone: text("preferred_timezone")
+    .notNull()
+    .default("UTC+00:00 - London"),
   preferredClass: text("preferred_class").notNull().default("Amazon"),
   preferredSecondaryClass: text("preferred_secondary_class")
     .notNull()
-    .default("None"),
-  discordName: text("discord_name").notNull().default(""),
+    .default("Assassin"),
+  discordName: text("discord_name").notNull(),
 });

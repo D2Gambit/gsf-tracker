@@ -53,6 +53,9 @@ export default function SignUp() {
         formData.get("password") as string
       );
 
+      // TODO: This never gets hit because isAuthenticated is set to true
+      // via Login() and the <Login /> component is replaced with the
+      // <GroupOrganizer /> component
       if (isAuthenticated) {
         toast.success("Group created and logged in successfully!");
       }

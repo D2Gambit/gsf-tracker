@@ -3,9 +3,8 @@ import React, { createContext, useContext } from "react";
 type AuthSession = {
   id: string;
   gsfGroupId: string;
-  accountName: string;
-  role: "organizer" | "member";
   token: string;
+  createdAt: Date;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -47,15 +46,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error("Invalid group name or password");
     }
 
-    const data: AuthSession = await res.json();
-
-    localStorage.setItem("gsfSession", JSON.stringify(data));
-    setSession({
+    const data = await res.json();
+    const sessionData = {
       id: data.id,
       gsfGroupId: data.gsfGroupId,
-      role: data.role,
-      token: data.token,
-    });
+      token: data.passwordHash,
+      createdAt: data.createdAt,
+    };
+
+    localStorage.setItem("gsfSession", JSON.stringify(sessionData));
+    setSession(sessionData);
   };
 
   const logout = () => {
