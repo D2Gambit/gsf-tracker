@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Copy, RefreshCw, Users, UserMinus, UserPlus } from "lucide-react";
+import { Users, UserMinus } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
+import NewUserModal from "./NewUserModal";
 
 interface Player {
   id: string;
@@ -21,6 +21,11 @@ const GroupOrganizer = () => {
   const { session } = useAuth();
 
   const [players, setPlayers] = useState<Player[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  if (!localStorage.getItem("gsfUserInfo") && !isModalOpen) {
+    setIsModalOpen(true);
+  }
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -76,12 +81,6 @@ const GroupOrganizer = () => {
             {session?.gsfGroupId}
           </h2>
         </div>
-        <Link to="/signup">
-          <button className="flex space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
-            <UserPlus className="h-5 w-5" />
-            <span>Sign up</span>
-          </button>
-        </Link>
       </div>
 
       <div className="space-y-4">
@@ -168,6 +167,13 @@ const GroupOrganizer = () => {
           </div>
         </div>
       </div>
+      {isModalOpen && session?.gsfGroupId && (
+        <NewUserModal
+          setIsModalOpen={setIsModalOpen}
+          existingPlayers={players}
+          gsfGroupId={session.gsfGroupId}
+        />
+      )}
     </section>
   );
 };

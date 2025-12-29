@@ -17,6 +17,7 @@ import { createGroup, validateGroupLogin } from "../store/groups_store";
 import {
   createMember,
   deleteMember,
+  getMemberByAccountName,
   getMembersByGroup,
 } from "../store/members_store";
 
@@ -166,4 +167,8 @@ api.get("/members/:gsfGroupId", async (c) => {
 
 api.delete(`/delete-member/:id`, async (c) => {
   return c.json(await deleteMember(c.req.param("id")));
+});
+
+api.get(`/member/:accountName`, async (c) => {
+  return c.json(await getMemberByAccountName(c.req.param("accountName")));
 });
