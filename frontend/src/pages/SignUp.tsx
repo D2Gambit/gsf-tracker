@@ -88,8 +88,6 @@ export default function SignUp() {
         return;
       }
 
-      console.log("form data:", data);
-
       var formData = new FormData();
       formData.append("gsfGroupId", session.gsfGroupId);
       formData.append("accountName", data.accountName);
