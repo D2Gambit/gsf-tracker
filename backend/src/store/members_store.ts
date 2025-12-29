@@ -30,3 +30,10 @@ export const getMembersByGroup = async (gsfGroupId: string) => {
     .from(gsfMembers)
     .where(eq(gsfMembers.gsfGroupId, gsfGroupId));
 };
+
+export const getMemberByAccountName = async (accountName: string) => {
+  return db
+    .select()
+    .from(gsfMembers)
+    .where(eq(gsfMembers.accountName, accountName));
+};
