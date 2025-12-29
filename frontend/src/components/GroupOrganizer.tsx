@@ -146,7 +146,10 @@ const GroupOrganizer = () => {
                   </div>
                 </div>
                 {(() => {
-                  return player.role === "organizer" ? (
+                  const userInfo = localStorage.getItem("gsfUserInfo");
+                  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+                  return parsedUserInfo &&
+                    parsedUserInfo.role === "organizer" ? (
                     <button
                       onClick={() => removePlayer(player.id)}
                       className="flex items-center space-x-2 px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
