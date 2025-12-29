@@ -49,17 +49,19 @@ const GroupOrganizer = () => {
   const classColors = (playerClass: string) => {
     switch (playerClass.toLowerCase()) {
       case "amazon":
-        return "bg-green-100 text-green-800";
+        return "bg-yellow-100 text-yellow-800";
+      case "assassin":
+        return "bg-red-100 text-red-800";
       case "barbarian":
         return "bg-orange-100 text-orange-800";
       case "druid":
         return "bg-green-100 text-green-800";
       case "necromancer":
-        return "bg-purple-100 text-purple-800";
+        return "bg-gray-200 text-gray-800";
       case "paladin":
         return "bg-blue-100 text-blue-800";
       case "sorceress":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-purple-100 text-purple-800";
       default:
         return "text-gray-500";
     }
@@ -135,14 +137,9 @@ const GroupOrganizer = () => {
                     >
                       {player.preferredSecondaryClass}
                     </span>
-                    <span
-                      className={
-                        "inline-flex items-center m-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500 text-white"
-                      }
-                      title="Discord Name"
-                    >
-                      Discord: {player.discordName}
-                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Discord: {player.discordName}
                   </div>
                 </div>
                 {(() => {
