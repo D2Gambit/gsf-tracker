@@ -114,12 +114,12 @@ const GroupOrganizer = () => {
                       {player.characterName}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center">
                     <div className="text-sm text-gray-600">
                       Timezone: {player.preferredTimezone}
                     </div>
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${classColors(
+                      className={`inline-flex items-center m-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${classColors(
                         player.preferredClass
                       )}`}
                       title="Preferred Class"
@@ -128,7 +128,7 @@ const GroupOrganizer = () => {
                     </span>
                     /
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${classColors(
+                      className={`inline-flex items-center m-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${classColors(
                         player.preferredSecondaryClass
                       )}`}
                       title="Secondary Class"
@@ -137,7 +137,7 @@ const GroupOrganizer = () => {
                     </span>
                     <span
                       className={
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500 text-white"
+                        "inline-flex items-center m-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500 text-white"
                       }
                       title="Discord Name"
                     >
