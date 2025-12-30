@@ -156,6 +156,8 @@ export default function HaveItemForm({
           onChange={(e) => setForm({ ...form, quality: e.target.value })}
         >
           <option value="">* Select Quality</option>
+          <option value="Charms">Charms</option>
+          <option value="Materials">Materials</option>
           <option value="Normal">Normal</option>
           <option value="Magic">Magic</option>
           <option value="Rare">Rare</option>

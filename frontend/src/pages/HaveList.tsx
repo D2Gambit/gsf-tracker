@@ -19,7 +19,14 @@ interface HaveItem {
   id: string;
   name: string;
   description: string;
-  quality: "Normal" | "Magic" | "Rare" | "Set" | "Unique";
+  quality:
+    | "Charms"
+    | "Materials"
+    | "Normal"
+    | "Magic"
+    | "Rare"
+    | "Set"
+    | "Unique";
   foundBy: string;
   location: string;
   createdAt: string;
@@ -43,7 +50,15 @@ export default function HaveList() {
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
   const [showReservedOnly, setShowReservedOnly] = useState(false);
 
-  const QUALITY_OPTIONS = ["Normal", "Magic", "Rare", "Unique", "Set"];
+  const QUALITY_OPTIONS = [
+    "Charms",
+    "Materials",
+    "Normal",
+    "Magic",
+    "Rare",
+    "Unique",
+    "Set",
+  ];
 
   const { session } = useAuth();
 
@@ -74,7 +89,12 @@ export default function HaveList() {
       selectedQualities.length === 0 ||
       selectedQualities.includes(item.quality);
 
-    const matchesReserved = !showReservedOnly || item.isReserved === false;
+    // const matchesMyItems = ;
+
+    const matchesReserved =
+      !showReservedOnly ||
+      (item.isReserved === false &&
+        item.foundBy !== parsedUserInfo.accountName);
 
     return matchesSearch && matchesQuality && matchesReserved;
   });
@@ -139,6 +159,10 @@ export default function HaveList() {
 
   const getQualityColor = (quality: string) => {
     switch (quality) {
+      case "Charms":
+        return "bg-purple-100 text-purple-800";
+      case "Materials":
+        return "bg-red-100 text-red-800";
       case "Normal":
         return "bg-gray-100 text-gray-800";
       case "Magic":
