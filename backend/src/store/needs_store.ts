@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm/sql/expressions/conditions";
+import { desc } from "drizzle-orm";
 import { db } from "../config/db";
 import { needItems } from "../config/schema";
 
@@ -23,11 +24,12 @@ export const updateNeedItemActiveFlag = async (
     .where(eq(needItems.id, parseInt(id)));
 };
 
-export const getNeedItems = async () => {
+export const getNeedItems = async (gsfGroupId: string) => {
   return db
     .select()
     .from(needItems)
-    .orderBy(needItems.createdAt, needItems.isActive);
+    .where(eq(needItems.gsfGroupId, gsfGroupId))
+    .orderBy(desc(needItems.createdAt), needItems.isActive);
 };
 
 export const deleteNeedItem = async (id: string) => {

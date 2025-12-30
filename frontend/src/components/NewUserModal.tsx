@@ -33,10 +33,10 @@ export default function NewUserModal({
       localStorage.setItem(
         "gsfUserInfo",
         JSON.stringify({
-          gsfGroupId: resData.gsfGroupId,
-          role: resData.role,
-          accountName: resData.accountName,
-          userInfo: resData,
+          gsfGroupId: resData[0].gsfGroupId,
+          role: resData[0].role,
+          accountName: resData[0].accountName,
+          userInfo: resData[0],
         })
       );
       setIsModalOpen(false);

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../../AuthContext";
 
 type UploadForm = {
   name: string;
   description: string;
-  foundBy: string;
   image: File | null;
 };
 
@@ -19,17 +19,21 @@ export default function UploadFindForm({
   const [form, setForm] = useState<UploadForm>({
     name: "",
     description: "",
-    foundBy: "",
     image: null,
   });
+
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+
+  const { session } = useAuth();
 
   const handleUploadConfirmClick = async () => {
     const uploadData = new FormData();
     uploadData.append("image", form.image!);
     uploadData.append("name", form.name);
     uploadData.append("description", form.description);
-    uploadData.append("foundBy", form.foundBy);
-    uploadData.append("gsfGroupId", "CariGSF"); // Replace with actual group ID
+    uploadData.append("foundBy", parsedUserInfo.accountName);
+    uploadData.append("gsfGroupId", session?.gsfGroupId ?? "Unknown");
 
     try {
       const res = await fetch("/api/upload-finds", {
@@ -108,15 +112,6 @@ export default function UploadFindForm({
           rows={3}
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
-        />
-
-        {/* Found By */}
-        <input
-          type="text"
-          placeholder="Found by"
-          className="w-full mb-4 p-2 rounded bg-zinc-700 text-zinc-100"
-          value={form.foundBy}
-          onChange={(e) => setForm({ ...form, foundBy: e.target.value })}
         />
 
         {/* Actions */}
