@@ -76,8 +76,8 @@ export default function HaveItemForm({
 
       const data = await res.json();
       setHaveItems([
-        ...haveItems.filter((item) => editItem.id !== item.id),
         data,
+        ...haveItems.filter((item) => editItem.id !== item.id),
       ]);
       addItem(data.id);
     } catch (err) {

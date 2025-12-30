@@ -8,7 +8,7 @@ export default function Login() {
   const [showNewGSFForm, setShowNewGSFForm] = React.useState(false);
 
   return (
-    <div className="min-h-screen bg-zinc-800 flex flex-col">
+    <div className="bg-zinc-800 flex flex-col">
       {showNewGSFForm ? (
         <NewGSFForm />
       ) : (
