@@ -30,6 +30,7 @@ export const haveItems = pgTable("gsfhaves", {
   reservedBy: text("reserved_by"),
   quality: text("quality").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
+  imageUrl: text("image_url"),
 });
 
 export const gsfGroups = pgTable("gsfgroups", {

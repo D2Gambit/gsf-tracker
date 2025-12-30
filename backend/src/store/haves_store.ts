@@ -13,6 +13,7 @@ export const createHaveItem = async (data: {
   isReserved: boolean;
   location: string;
   reservedBy?: string;
+  imageUrl: string;
 }) => {
   return db.insert(haveItems).values(data).returning();
 };

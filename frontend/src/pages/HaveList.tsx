@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Search, Edit, Trash2, Plus, Package } from "lucide-react";
+import { Search, Edit, Trash2, Plus, Package, Image } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import HaveItemForm from "../components/HaveItemForm";
 import { toast } from "react-toastify";
-import { set } from "react-hook-form";
 import { useAuth } from "../../AuthContext";
+import ImageModal from "../components/ImageModal";
 
 interface HaveItem {
   id: string;
@@ -17,6 +17,7 @@ interface HaveItem {
   createdAt: string;
   isReserved: boolean;
   reservedBy?: string;
+  imageUrl: string;
 }
 
 export default function HaveList() {
@@ -30,6 +31,7 @@ export default function HaveList() {
   const [currentItem, setCurrentItem] = useState<Partial<HaveItem>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [haveItems, setHaveItems] = useState<HaveItem[]>([]);
+  const [clickedImage, setClickedImage] = useState("");
 
   const { session } = useAuth();
 
@@ -188,11 +190,21 @@ export default function HaveList() {
                   className="p-6 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div
+                      className={`flex-1 ${
+                        item.imageUrl && "hover:cursor-pointer"
+                      }`}
+                      onClick={() => {
+                        setClickedImage(item.imageUrl);
+                      }}
+                    >
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">
                           {item.name}
                         </h3>
+                        {item.imageUrl && (
+                          <Image className="h-6 w-6 text-blue-700" />
+                        )}
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getQualityColor(
                             item.quality
@@ -292,9 +304,17 @@ export default function HaveList() {
           )}
         </div>
 
+        {clickedImage && (
+          <ImageModal
+            imageUrl={clickedImage}
+            onClose={() => setClickedImage("")}
+          />
+        )}
+
         {/* Modal for Add Item */}
         {isModalOpen && (
           <HaveItemForm
+            isModalOpen={isModalOpen}
             setIsModalOpen={setIsModalOpen}
             haveItems={haveItems}
             setHaveItems={setHaveItems}

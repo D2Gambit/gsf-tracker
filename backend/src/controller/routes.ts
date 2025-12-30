@@ -90,6 +90,9 @@ api.get("/have-items/:gsfGroupId", async (c) => {
 
 api.post("/add-have-item", async (c) => {
   const body = await c.req.parseBody();
+
+  const imageUrl = await uploadLootImage(body.image as File);
+
   const result = await createHaveItem({
     gsfGroupId: body.gsfGroupId as string,
     name: body.name as string,
@@ -100,6 +103,7 @@ api.post("/add-have-item", async (c) => {
     isReserved: (body.isReserved as string) === "true",
     location: body.location as string,
     reservedBy: body.reservedBy as string,
+    imageUrl: imageUrl,
   });
 
   return c.json(result[0]);
