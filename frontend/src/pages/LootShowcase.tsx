@@ -6,6 +6,7 @@ import UploadFindForm from "../components/UploadFindForm";
 import { useAuth } from "../../AuthContext";
 import ImageModal from "../components/ImageModal";
 import ImageTooltip from "../components/ImageTooltip";
+import { toast } from "react-toastify";
 
 interface LootItem {
   id: string;
@@ -15,6 +16,15 @@ interface LootItem {
   createdAt: string;
   description?: string;
 }
+
+type ReactionRow = {
+  id: string;
+  gsfGroupId: string;
+  findId: string;
+  accountName: string;
+  emoji: string;
+  createdAt: string;
+};
 
 // move fetchFinds function to a separate file within a services folder and import it here
 // move interfaces into a separate file within a types folder and import them here
@@ -30,8 +40,44 @@ export default function LootShowcase() {
   const [error, setError] = useState<string | null>(null);
   const [clickedImage, setClickedImage] = useState("");
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
+  type ReactionCounts = Record<string, number>;
+
+  const [reactions, setReactions] = useState<Record<string, ReactionCounts>>(
+    {}
+  );
+
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+
+  const AVAILABLE_REACTIONS = [
+    "🔥",
+    "💪",
+    "👌",
+    "👍",
+    "🤏",
+    "🍆",
+    "💦",
+    "🏄",
+    "💀",
+  ];
 
   const { session } = useAuth();
+
+  const buildReactionMap = (
+    rows: ReactionRow[]
+  ): Record<string, Record<string, number>> => {
+    return rows.reduce((acc, row) => {
+      const { findId, emoji } = row;
+
+      if (!acc[findId]) {
+        acc[findId] = {};
+      }
+
+      acc[findId][emoji] = (acc[findId][emoji] ?? 0) + 1;
+
+      return acc;
+    }, {} as Record<string, Record<string, number>>);
+  };
 
   const handleUploadClick = () => {
     setIsModalOpen(true);
@@ -41,11 +87,22 @@ export default function LootShowcase() {
     try {
       setLoading(true);
 
+      // Get all finds first
       const res = await fetch(`/api/finds/${session?.gsfGroupId}`);
       if (!res.ok) throw new Error("Failed to fetch finds");
 
       const data = await res.json();
       setLootItems(data);
+      // Then grab all the find reactions
+      const reactionRes = await fetch(
+        `/api/find-reactions/${session?.gsfGroupId}`
+      );
+      if (!reactionRes.ok) {
+        throw new Error("Failed to fetch find reactions");
+      }
+      const reactionsData: ReactionRow[] = await reactionRes.json();
+      const reactionMap = buildReactionMap(reactionsData);
+      setReactions(reactionMap);
     } catch (err) {
       setError("Unable to load finds");
       console.error(err);
@@ -54,11 +111,38 @@ export default function LootShowcase() {
     }
   };
 
+  const handleReaction = async (lootId: string, emoji: string) => {
+    if (!userInfo) return;
+
+    const reqData = new FormData();
+    reqData.append("gsfGroupId", session?.gsfGroupId ?? "Unknown");
+    reqData.append("findId", lootId);
+    reqData.append("accountName", parsedUserInfo.accountName);
+    reqData.append("emoji", emoji);
+    const res = await fetch(`/api/create-reaction`, {
+      method: "POST",
+      body: reqData,
+    });
+
+    if (res.status === 409) {
+      toast.error("You already reacted with this emoji!");
+    } else if (!res.ok) {
+      // rollback optimistic update
+      toast.error("Unable to add reaction. Please try again!");
+    } else {
+      setReactions((prev) => ({
+        ...prev,
+        [lootId]: {
+          ...prev[lootId],
+          [emoji]: (prev[lootId]?.[emoji] ?? 0) + 1,
+        },
+      }));
+    }
+  };
+
   useEffect(() => {
     fetchFinds();
   }, []);
-
-  const handleLootItemClicked = (id: string) => {};
 
   return (
     <div className="min-h-screen bg-zinc-800 flex flex-col">
@@ -97,22 +181,39 @@ export default function LootShowcase() {
               {lootItems.map((item, i) => (
                 <div
                   key={i}
-                  className="hover:cursor-pointer bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
-                  onClick={() => {
-                    setClickedImage(item.imageUrl);
-                  }}
+                  className="group relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
                 >
                   <img
                     src={item.imageUrl}
                     alt={item.name}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover hover:cursor-pointer"
+                    onClick={() => {
+                      setClickedImage(item.imageUrl);
+                    }}
                     onMouseEnter={() => setHoveredImage(item.imageUrl)}
                     onMouseLeave={() => setHoveredImage(null)}
                   />
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2">
-                      {item.name}
+                      {item.name}{" "}
+                      {reactions[item.id] && (
+                        <div className="inline-flex flex-wrap gap-2 mt-2 text-sm">
+                          {Object.entries(reactions[item.id]).map(
+                            ([emoji, count]) => (
+                              <span
+                                key={emoji}
+                                className="flex items-center gap-1 rounded-full bg-zinc-200 px-2 py-0.5"
+                                onClick={() => handleReaction(item.id, emoji)}
+                              >
+                                <span>{emoji}</span>
+                                <span className="font-medium">{count}</span>
+                              </span>
+                            )
+                          )}
+                        </div>
+                      )}
                     </h3>
+
                     <p
                       className={`text-sm text-gray-600 mb-3 ${
                         !item.description && "italic"
@@ -140,6 +241,18 @@ export default function LootShowcase() {
                         </span>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="group absolute bottom-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 rounded-full bg-zinc-800/90 px-2 py-1 shadow-md">
+                    {AVAILABLE_REACTIONS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        onClick={() => handleReaction(item.id, emoji)}
+                        className="text-lg hover:scale-125 transition-transform cursor-pointer"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
                   </div>
                 </div>
               ))}
