@@ -332,6 +332,8 @@ export default function LootShowcase() {
 
             <ImageTooltip imageUrl={hoveredImage} />
 
+            <ImageTooltip imageUrl={hoveredImage} />
+
             {lootItems.length === 0 && (
               <div className="text-center py-12">
                 <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
