@@ -73,6 +73,12 @@ export default function LootShowcase() {
     }));
   };
 
+  const getTotalReactions = (itemId: string) => {
+    const itemReactions = reactions[itemId];
+    if (!itemReactions) return 0;
+    return Object.values(itemReactions).reduce((sum, count) => sum + count, 0);
+  };
+
   const buildReactionMap = (
     rows: ReactionRow[]
   ): Record<string, Record<string, number>> => {
@@ -102,7 +108,7 @@ export default function LootShowcase() {
       if (!res.ok) throw new Error("Failed to fetch finds");
 
       const data = await res.json();
-      setLootItems(data);
+
       // Then grab all the find reactions
       const reactionRes = await fetch(
         `/api/find-reactions/${session?.gsfGroupId}`
@@ -113,6 +119,28 @@ export default function LootShowcase() {
       const reactionsData: ReactionRow[] = await reactionRes.json();
       const reactionMap = buildReactionMap(reactionsData);
       setReactions(reactionMap);
+
+      // Create a copy of data so we don't mutate it
+      const items = [...data];
+
+      // Sort top 3 by reactions, keep remaining latest first
+      const sortedData = items
+        .sort((a, b) => {
+          const aReactions = Object.values(reactionMap[a.id] || {}).reduce(
+            (sum, c) => sum + c,
+            0
+          );
+          const bReactions = Object.values(reactionMap[b.id] || {}).reduce(
+            (sum, c) => sum + c,
+            0
+          );
+          return bReactions - aReactions; // descending
+        })
+        .slice(0, 3);
+
+      const remaining = data.filter((item) => !sortedData.includes(item));
+
+      setLootItems([...sortedData, ...remaining]);
     } catch (err) {
       setError("Unable to load finds");
       console.error(err);
