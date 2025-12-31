@@ -99,6 +99,30 @@ export default function HaveItemForm({
             setForm((prev) => ({ ...prev, image: file }));
           }
         }
+        if (item.type.startsWith("text")) {
+          item.getAsString((text) => {
+            const parsedItem = JSON.parse(text);
+            let newDesc = parsedItem.stats.map((stat, i) => {
+              if (
+                stat.name.includes("Corrupt") ||
+                stat.name.includes("evil force")
+              ) {
+                return;
+              }
+              if (i === 0) {
+                return stat.value + " " + stat.name;
+              }
+              return " " + stat.value + " " + stat.name;
+            });
+            newDesc = newDesc.filter((desc) => desc !== undefined);
+            setForm((prev) => ({
+              ...prev,
+              name: parsedItem.name,
+              quality: parsedItem.quality,
+              description: newDesc,
+            }));
+          });
+        }
       }
     };
 
