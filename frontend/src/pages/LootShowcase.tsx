@@ -221,6 +221,14 @@ export default function LootShowcase() {
                   key={i}
                   className="group relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
                 >
+                  {i >= 0 && i <= 2 && reactions[item.id] !== undefined && (
+                    <span
+                      className="text-[2em] absolute top-0 left-0 rounded-br-2xl rounded-tl-lg bg-gradient-to-tl from-gray-600/60 to-white"
+                      title="This item is HOT!"
+                    >
+                      🔥
+                    </span>
+                  )}
                   <img
                     src={item.imageUrl}
                     alt={item.name}
@@ -280,7 +288,6 @@ export default function LootShowcase() {
                       </div>
                     </div>
                   </div>
-
                   <div className="group absolute bottom-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 rounded-full bg-zinc-800/90 px-2 py-1 shadow-md">
                     {/* Toggle Button */}
                     <button
