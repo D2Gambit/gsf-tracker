@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../AuthContext";
+import { Loader } from "lucide-react";
 
 type UploadForm = {
   name: string;
@@ -22,12 +23,15 @@ export default function UploadFindForm({
     image: null,
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
   const { session } = useAuth();
 
   const handleUploadConfirmClick = async () => {
+    setIsSubmitting(true);
     const uploadData = new FormData();
     uploadData.append("image", form.image!);
     uploadData.append("name", form.name);
@@ -47,9 +51,11 @@ export default function UploadFindForm({
 
       const responseData = await res.json();
       onUploadSuccess();
+      setIsSubmitting(false);
       setIsModalOpen(false);
     } catch (err) {
       console.error("Error calling backend:", err);
+      setIsSubmitting(false);
     }
   };
 
@@ -126,9 +132,15 @@ export default function UploadFindForm({
           <button
             className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
             onClick={handleUploadConfirmClick}
-            disabled={!form.name}
+            disabled={!form.name && isSubmitting}
           >
-            Confirm Upload
+            {isSubmitting ? (
+              <div className="flex justify-center">
+                <Loader className="animate-spin mr-2" /> Uploading...
+              </div>
+            ) : (
+              "Confirm Upload"
+            )}
           </button>
         </div>
       </div>

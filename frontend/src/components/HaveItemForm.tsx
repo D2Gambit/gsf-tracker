@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../AuthContext";
 import { parse } from "zod/v4/core";
 
@@ -7,15 +7,18 @@ type AddHaveItemForm = {
   description: string;
   quality: string;
   location: string;
+  image: File | null;
 };
 
 export default function HaveItemForm({
+  isModalOpen,
   setIsModalOpen,
   haveItems,
   setHaveItems,
   addItem,
   editItem,
 }: {
+  isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   haveItems: any[];
   setHaveItems: React.Dispatch<React.SetStateAction<any[]>>;
@@ -27,6 +30,7 @@ export default function HaveItemForm({
     description: editItem.description,
     quality: editItem.quality,
     location: editItem.location,
+    image: null,
   });
 
   const { session } = useAuth();
@@ -38,6 +42,7 @@ export default function HaveItemForm({
     setIsModalOpen(false); // closes the modal
 
     const formData = new FormData();
+    formData.append("image", form.image!);
     formData.append("gsfGroupId", session?.gsfGroupId?.toString() || "Unknown");
     formData.append("name", form.name);
     formData.append(
@@ -71,14 +76,59 @@ export default function HaveItemForm({
 
       const data = await res.json();
       setHaveItems([
-        ...haveItems.filter((item) => editItem.id !== item.id),
         data,
+        ...haveItems.filter((item) => editItem.id !== item.id),
       ]);
       addItem(data.id);
     } catch (err) {
       console.error("Error calling backend:", err);
     }
   };
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (const item of items) {
+        if (item.type.startsWith("image")) {
+          const file = item.getAsFile();
+          if (file) {
+            setForm((prev) => ({ ...prev, image: file }));
+          }
+        }
+        if (item.type.startsWith("text")) {
+          item.getAsString((text) => {
+            const parsedItem = JSON.parse(text);
+            let newDesc = parsedItem.stats.map((stat, i) => {
+              if (
+                stat.name.includes("Corrupt") ||
+                stat.name.includes("evil force")
+              ) {
+                return;
+              }
+              if (i === 0) {
+                return stat.value + " " + stat.name;
+              }
+              return " " + stat.value + " " + stat.name;
+            });
+            newDesc = newDesc.filter((desc) => desc !== undefined);
+            setForm((prev) => ({
+              ...prev,
+              name: parsedItem.name,
+              quality: parsedItem.quality,
+              description: newDesc,
+            }));
+          });
+        }
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [isModalOpen]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -87,10 +137,25 @@ export default function HaveItemForm({
           {editItem.name ? "Edit Have Item" : "Add Have Item"}
         </h3>
 
+        {/* Image preview */}
+        <div className="mb-4 border border-dashed border-zinc-500 rounded p-4 text-center">
+          {form.image ? (
+            <img
+              src={URL.createObjectURL(form.image)}
+              alt="Preview"
+              className="mx-auto max-h-48 rounded"
+            />
+          ) : (
+            <p className="text-zinc-400 text-sm">
+              Optional: Paste an image from clipboard (Ctrl + V)
+            </p>
+          )}
+        </div>
+
         {/* Name */}
         <input
           type="text"
-          placeholder="Item Name"
+          placeholder="* Item Name"
           className="w-full mb-3 p-2 rounded bg-zinc-700 text-zinc-100"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -98,7 +163,7 @@ export default function HaveItemForm({
 
         {/* Description */}
         <textarea
-          placeholder="Description"
+          placeholder="Optional: Description"
           className="w-full mb-3 p-2 rounded bg-zinc-700 text-zinc-100"
           rows={3}
           value={form.description}
@@ -114,7 +179,9 @@ export default function HaveItemForm({
           value={form.quality}
           onChange={(e) => setForm({ ...form, quality: e.target.value })}
         >
-          <option value="">Select Quality</option>
+          <option value="">* Select Quality</option>
+          <option value="Charms">Charms</option>
+          <option value="Materials">Materials</option>
           <option value="Normal">Normal</option>
           <option value="Magic">Magic</option>
           <option value="Rare">Rare</option>
@@ -125,7 +192,7 @@ export default function HaveItemForm({
         {/* Location */}
         <input
           type="text"
-          placeholder="Location Found"
+          placeholder="Optional: Location Found"
           className="w-full mb-4 p-2 rounded bg-zinc-700 text-zinc-100"
           value={form.location}
           onChange={(e) => setForm({ ...form, location: e.target.value })}

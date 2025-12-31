@@ -121,22 +121,6 @@ export default function LoginForm({
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-400"
-              >
-                Remember me
-              </label>
-            </div>
-          </div>
           {invalidLogin && (
             <div className="flex mb-4">
               <p className="mt-1 text-sm text-red-600">

@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import UploadFindForm from "../components/UploadFindForm";
 import { useAuth } from "../../AuthContext";
+import ImageModal from "../components/ImageModal";
 
 interface LootItem {
   id: string;
@@ -26,6 +27,7 @@ export default function LootShowcase() {
   const [lootItems, setLootItems] = useState<LootItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [clickedImage, setClickedImage] = useState("");
 
   const { session } = useAuth();
 
@@ -53,6 +55,8 @@ export default function LootShowcase() {
   useEffect(() => {
     fetchFinds();
   }, []);
+
+  const handleLootItemClicked = (id: string) => {};
 
   return (
     <div className="min-h-screen bg-zinc-800 flex flex-col">
@@ -91,7 +95,10 @@ export default function LootShowcase() {
               {lootItems.map((item, i) => (
                 <div
                   key={i}
-                  className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
+                  className="hover:cursor-pointer bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
+                  onClick={() => {
+                    setClickedImage(item.imageUrl);
+                  }}
                 >
                   <img
                     src={item.imageUrl}
@@ -133,6 +140,13 @@ export default function LootShowcase() {
                 </div>
               ))}
             </div>
+
+            {clickedImage && (
+              <ImageModal
+                imageUrl={clickedImage}
+                onClose={() => setClickedImage("")}
+              />
+            )}
 
             {lootItems.length === 0 && (
               <div className="text-center py-12">

@@ -1,22 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { Search, Edit, Trash2, Plus, Package } from "lucide-react";
+import {
+  Search,
+  Edit,
+  Trash2,
+  Plus,
+  Package,
+  Image,
+  Filter,
+} from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import HaveItemForm from "../components/HaveItemForm";
 import { toast } from "react-toastify";
-import { set } from "react-hook-form";
 import { useAuth } from "../../AuthContext";
+import ImageModal from "../components/ImageModal";
 
 interface HaveItem {
   id: string;
   name: string;
   description: string;
-  quality: "Normal" | "Magic" | "Rare" | "Set" | "Unique";
+  quality:
+    | "Charms"
+    | "Materials"
+    | "Normal"
+    | "Magic"
+    | "Rare"
+    | "Set"
+    | "Unique";
   foundBy: string;
   location: string;
   createdAt: string;
   isReserved: boolean;
   reservedBy?: string;
+  imageUrl: string;
 }
 
 export default function HaveList() {
@@ -30,6 +46,19 @@ export default function HaveList() {
   const [currentItem, setCurrentItem] = useState<Partial<HaveItem>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [haveItems, setHaveItems] = useState<HaveItem[]>([]);
+  const [clickedImage, setClickedImage] = useState("");
+  const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
+  const [showReservedOnly, setShowReservedOnly] = useState(false);
+
+  const QUALITY_OPTIONS = [
+    "Charms",
+    "Materials",
+    "Normal",
+    "Magic",
+    "Rare",
+    "Unique",
+    "Set",
+  ];
 
   const { session } = useAuth();
 
@@ -51,11 +80,24 @@ export default function HaveList() {
     fetchHaveItems();
   }, []);
 
-  const filteredItems = haveItems.filter(
-    (item) =>
+  const filteredItems = haveItems.filter((item) => {
+    const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesQuality =
+      selectedQualities.length === 0 ||
+      selectedQualities.includes(item.quality);
+
+    // const matchesMyItems = ;
+
+    const matchesReserved =
+      !showReservedOnly ||
+      (item.isReserved === false &&
+        item.foundBy !== parsedUserInfo.accountName);
+
+    return matchesSearch && matchesQuality && matchesReserved;
+  });
 
   const deleteItem = async (id: string) => {
     try {
@@ -117,6 +159,10 @@ export default function HaveList() {
 
   const getQualityColor = (quality: string) => {
     switch (quality) {
+      case "Charms":
+        return "bg-purple-100 text-purple-800";
+      case "Materials":
+        return "bg-red-100 text-red-800";
       case "Normal":
         return "bg-gray-100 text-gray-800";
       case "Magic":
@@ -154,7 +200,7 @@ export default function HaveList() {
         </div>
 
         {/* Search */}
-        <div className="mb-6">
+        <div className="mb-2">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
@@ -167,6 +213,58 @@ export default function HaveList() {
               placeholder="Search items by name or description..."
             />
           </div>
+        </div>
+
+        <div className="flex items-center flex-wrap gap-2 mt-3 mb-3">
+          <Filter className="flex h-4 w-4 text-zinc-300" />
+          <label className="text-sm font-medium text-zinc-300">Filters: </label>
+          {/* Quality filters */}
+          {QUALITY_OPTIONS.map((quality) => {
+            const isSelected = selectedQualities.includes(quality);
+
+            return (
+              <button
+                key={quality}
+                type="button"
+                onClick={() =>
+                  setSelectedQualities((prev) =>
+                    prev.includes(quality)
+                      ? prev.filter((q) => q !== quality)
+                      : [...prev, quality]
+                  )
+                }
+                className={`
+          inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
+          border transition
+          ${
+            isSelected
+              ? `${getQualityColor(quality)} border-transparent`
+              : `${getQualityColor(
+                  quality
+                )} opacity-70 border-zinc-300 hover:bg-zinc-200`
+          }
+        `}
+              >
+                {quality}
+              </button>
+            );
+          })}
+          {/* Reserved filter */}
+          <button
+            type="button"
+            onClick={() => setShowReservedOnly((prev) => !prev)}
+            className={`
+      inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
+      border transition
+      ${
+        showReservedOnly
+          ? "bg-green-100 text-green-800 border-transparent"
+          : "bg-green-100 text-green-800 opacity-70 border-zinc-300 hover:bg-zinc-200"
+      }
+    `}
+          >
+            Reservable
+          </button>
         </div>
 
         {/* Items List */}
@@ -188,11 +286,21 @@ export default function HaveList() {
                   className="p-6 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div
+                      className={`flex-1 ${
+                        item.imageUrl && "hover:cursor-pointer"
+                      }`}
+                      onClick={() => {
+                        setClickedImage(item.imageUrl);
+                      }}
+                    >
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">
                           {item.name}
                         </h3>
+                        {item.imageUrl && (
+                          <Image className="h-6 w-6 text-blue-700" />
+                        )}
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getQualityColor(
                             item.quality
@@ -292,9 +400,17 @@ export default function HaveList() {
           )}
         </div>
 
+        {clickedImage && (
+          <ImageModal
+            imageUrl={clickedImage}
+            onClose={() => setClickedImage("")}
+          />
+        )}
+
         {/* Modal for Add Item */}
         {isModalOpen && (
           <HaveItemForm
+            isModalOpen={isModalOpen}
             setIsModalOpen={setIsModalOpen}
             haveItems={haveItems}
             setHaveItems={setHaveItems}
