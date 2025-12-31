@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import UploadFindForm from "../components/UploadFindForm";
 import { useAuth } from "../../AuthContext";
 import ImageModal from "../components/ImageModal";
+import ImageTooltip from "../components/ImageTooltip";
 
 interface LootItem {
   id: string;
@@ -28,6 +29,7 @@ export default function LootShowcase() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [clickedImage, setClickedImage] = useState("");
+  const [hoveredImage, setHoveredImage] = useState<string | null>(null);
 
   const { session } = useAuth();
 
@@ -104,6 +106,8 @@ export default function LootShowcase() {
                     src={item.imageUrl}
                     alt={item.name}
                     className="w-full h-48 object-cover"
+                    onMouseEnter={() => setHoveredImage(item.imageUrl)}
+                    onMouseLeave={() => setHoveredImage(null)}
                   />
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2">
@@ -147,6 +151,8 @@ export default function LootShowcase() {
                 onClose={() => setClickedImage("")}
               />
             )}
+
+            <ImageTooltip imageUrl={hoveredImage} />
 
             {lootItems.length === 0 && (
               <div className="text-center py-12">
