@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Upload, Calendar } from "lucide-react";
+import { Upload, Calendar, SmilePlus } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import UploadFindForm from "../components/UploadFindForm";
@@ -40,6 +40,9 @@ export default function LootShowcase() {
   const [error, setError] = useState<string | null>(null);
   const [clickedImage, setClickedImage] = useState("");
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
+  const [collapsedCards, setCollapsedCards] = useState<Record<string, boolean>>(
+    {}
+  );
   type ReactionCounts = Record<string, number>;
 
   const [reactions, setReactions] = useState<Record<string, ReactionCounts>>(
@@ -62,6 +65,13 @@ export default function LootShowcase() {
   ];
 
   const { session } = useAuth();
+
+  const toggleCollapsed = (findId: string) => {
+    setCollapsedCards((prev) => ({
+      ...prev,
+      [findId]: !prev[findId],
+    }));
+  };
 
   const buildReactionMap = (
     rows: ReactionRow[]
@@ -202,7 +212,7 @@ export default function LootShowcase() {
                             ([emoji, count]) => (
                               <span
                                 key={emoji}
-                                className="flex items-center gap-1 rounded-full bg-zinc-200 px-2 py-0.5"
+                                className="flex items-center gap-1 rounded-full bg-zinc-800/90 text-gray-300 px-2 py-0.5"
                                 onClick={() => handleReaction(item.id, emoji)}
                               >
                                 <span>{emoji}</span>
@@ -244,15 +254,35 @@ export default function LootShowcase() {
                   </div>
 
                   <div className="group absolute bottom-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 rounded-full bg-zinc-800/90 px-2 py-1 shadow-md">
-                    {AVAILABLE_REACTIONS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        onClick={() => handleReaction(item.id, emoji)}
-                        className="text-lg hover:scale-125 transition-transform cursor-pointer"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
+                    {/* Toggle Button */}
+                    <button
+                      onClick={() => toggleCollapsed(item.id)}
+                      className="text-white rounded-full p-1 shadow-md transition-colors"
+                    >
+                      <SmilePlus className="h-3 w-3" />
+                    </button>
+                    {/* Emoji Buttons */}
+                    <div
+                      className={`
+                        flex gap-1 rounded-full bg-zinc-800/90 p-1 shadow-md
+                        transition-all overflow-hidden
+                        ${
+                          !collapsedCards[item.id]
+                            ? "w-0 opacity-0"
+                            : "w-auto opacity-100"
+                        }
+                      `}
+                    >
+                      {AVAILABLE_REACTIONS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleReaction(item.id, emoji)}
+                          className="text-lg hover:scale-125 transition-transform cursor-pointer"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}
