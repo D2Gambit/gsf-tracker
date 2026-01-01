@@ -1,12 +1,8 @@
-import { useState } from "react";
 import type { LootItem } from "../../types/loot";
 import type { ReactionCounts } from "../../types/reactions";
 import { Calendar } from "lucide-react";
 import ReactionBar from "./ReactionBar";
 import { useAuth } from "../../../AuthContext";
-import { useFinds } from "../../hooks/useFinds";
-import { useReactions } from "../../hooks/useReactions";
-import { sortLootWithTopReactions } from "../../utils/sorting";
 
 type LootCardProps = {
   index: string;
