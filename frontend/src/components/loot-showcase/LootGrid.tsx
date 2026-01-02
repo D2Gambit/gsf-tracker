@@ -28,7 +28,6 @@ export default function LootGrid() {
     useFinds();
 
   const { reactions, loadReactions, saveReaction } = useReactions();
-  // const [hotItems, setHotItems] = useState<LootItem[]>([]);
 
   /** ---------------------------
    * Initial load (finds + reactions)
