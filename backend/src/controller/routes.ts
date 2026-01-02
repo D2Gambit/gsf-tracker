@@ -1,5 +1,10 @@
 import { Hono } from "hono";
-import { createFind, getLatestFinds } from "../store/finds_store";
+import {
+  createFind,
+  createFindReaction,
+  getGsfReactions,
+  getLatestFinds,
+} from "../store/finds_store";
 import { uploadLootImage } from "../config/db";
 import {
   createNeedItem,
@@ -48,6 +53,36 @@ api.post("/upload-finds", async (c) => {
   });
 
   return c.json(result[0]);
+});
+
+api.post("/create-reaction", async (c) => {
+  const body = await c.req.parseBody();
+
+  try {
+    const result = await createFindReaction({
+      gsfGroupId: body.gsfGroupId as string,
+      findId: body.findId as string,
+      accountName: body.accountName as string,
+      emoji: body.emoji as string,
+      createdAt: new Date(),
+    });
+
+    return c.json(result[0]);
+  } catch (err: any) {
+    if (err.message === "DUPLICATE_REACTION") {
+      return c.json(
+        { error: "You have already reacted with this emoji." },
+        409
+      );
+    }
+
+    console.error(err);
+    return c.json({ error: "Internal server error" }, 500);
+  }
+});
+
+api.get("/find-reactions/:gsfGroupId", async (c) => {
+  return c.json(await getGsfReactions(c.req.param("gsfGroupId")));
 });
 
 api.get("/need-items/:gsfGroupId", async (c) => {
