@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "../../../AuthContext";
 import { Loader } from "lucide-react";
+import type { LootUploadItem } from "../../types/loot";
 
 type UploadForm = {
   name: string;
@@ -8,14 +9,14 @@ type UploadForm = {
   image: File | null;
 };
 
-export default function UploadFindForm({
+export default function UploadLootForm({
   isModalOpen,
   setIsModalOpen,
-  onUploadSuccess,
+  saveFind,
 }: {
   isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  onUploadSuccess: () => void;
+  saveFind: (find: LootUploadItem) => Promise<void>;
 }) {
   const [form, setForm] = useState<UploadForm>({
     name: "",
@@ -25,40 +26,19 @@ export default function UploadFindForm({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const userInfo = localStorage.getItem("gsfUserInfo");
-  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
-
   const { session } = useAuth();
 
   const handleUploadConfirmClick = async () => {
     setIsSubmitting(true);
-    const uploadData = new FormData();
-    uploadData.append("image", form.image!);
-    uploadData.append("name", form.name);
-    uploadData.append("description", form.description);
-    uploadData.append("foundBy", parsedUserInfo.accountName);
-    uploadData.append("gsfGroupId", session?.gsfGroupId ?? "Unknown");
-
-    try {
-      const res = await fetch("/api/upload-finds", {
-        method: "POST",
-        body: uploadData,
-      });
-
-      if (!res.ok) {
-        throw new Error("Request failed");
-      }
-
-      const responseData = await res.json();
-      onUploadSuccess();
-      setIsSubmitting(false);
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error("Error calling backend:", err);
-      setIsSubmitting(false);
-    }
+    saveFind({
+      name: form.name,
+      image: form.image!,
+      description: form.description,
+      gsfGroupId: session?.gsfGroupId ?? "Unknown",
+    });
+    setIsSubmitting(false);
+    setIsModalOpen(false);
   };
-
   useEffect(() => {
     if (!isModalOpen) return;
 

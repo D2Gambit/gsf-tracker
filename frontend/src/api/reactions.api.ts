@@ -1,0 +1,23 @@
+export async function fetchFindReactions(groupId: string) {
+  const res = await fetch(`/api/find-reactions/${groupId}`);
+  if (!res.ok) throw new Error("Failed to fetch reactions");
+  return res.json();
+}
+
+export async function createReaction(obj: any) {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(obj)) {
+    formData.append(key, String(value));
+  }
+  const res = await fetch(`/api/create-reaction`, {
+    method: "POST",
+    body: formData,
+  });
+  if (res.status === 409) {
+    throw new Error("You already reacted with this emoji!");
+  }
+  if (!res.ok) {
+    throw new Error("Failed to create reaction");
+  }
+  return res.json();
+}
