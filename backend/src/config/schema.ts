@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, boolean, serial } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  serial,
+  bigint,
+} from "drizzle-orm/pg-core";
 export const finds = pgTable("gsffinds", {
   id: serial("id").primaryKey(),
   gsfGroupId: text("gsf_group_id").notNull(),
@@ -12,7 +19,7 @@ export const finds = pgTable("gsffinds", {
 export const findReactions = pgTable("gsffindreactions", {
   id: serial("id").primaryKey(),
   gsfGroupId: text("gsf_group_id").notNull(),
-  findId: text("find_id"),
+  findId: bigint("find_id", { mode: "number" }).notNull(),
   accountName: text("account_name").notNull(),
   emoji: text("emoji").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
