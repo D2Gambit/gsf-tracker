@@ -369,9 +369,7 @@ export default function HaveList() {
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <h3
-                          className={`text-lg font-semibold bg-opacity-0 ${getQualityColor(
-                            item.quality
-                          )}`}
+                          className={`text-lg font-semibold bg-opacity-0}`}
                           title={item.name}
                         >
                           {truncate(item.name, 30)}
