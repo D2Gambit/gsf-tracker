@@ -39,6 +39,7 @@ export default function LootCard({
     if (!session?.gsfGroupId || !parsedUserInfo.accountName) return;
 
     if (
+      itemReactions &&
       itemReactions[emoji] &&
       itemReactions[emoji].accounts.includes(parsedUserInfo.accountName)
     ) {
