@@ -3,6 +3,7 @@ import type { ReactionCounts } from "../../types/reactions";
 import { Calendar } from "lucide-react";
 import ReactionBar from "./ReactionBar";
 import { useAuth } from "../../../AuthContext";
+import { toast } from "react-toastify";
 
 type LootCardProps = {
   index: string;
@@ -36,6 +37,14 @@ export default function LootCard({
     const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
     if (!session?.gsfGroupId || !parsedUserInfo.accountName) return;
+
+    if (
+      itemReactions[emoji] &&
+      itemReactions[emoji].accounts.includes(parsedUserInfo.accountName)
+    ) {
+      toast.error("You have already reacted to this post!");
+      return;
+    }
 
     await saveReaction({
       gsfGroupId: session.gsfGroupId,
