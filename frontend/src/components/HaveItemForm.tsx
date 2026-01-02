@@ -101,26 +101,20 @@ export default function HaveItemForm({
         }
         if (item.type.startsWith("text")) {
           item.getAsString((text) => {
-            const parsedItem = JSON.parse(text);
-            let newDesc = parsedItem.stats.map((stat, i) => {
-              if (
-                stat.name.includes("Corrupt") ||
-                stat.name.includes("evil force")
-              ) {
-                return;
-              }
-              if (i === 0) {
-                return stat.value + " " + stat.name;
-              }
-              return " " + stat.value + " " + stat.name;
-            });
-            newDesc = newDesc.filter((desc) => desc !== undefined);
-            setForm((prev) => ({
-              ...prev,
-              name: parsedItem.name,
-              quality: parsedItem.quality,
-              description: newDesc,
-            }));
+            try {
+              const parsedItem = JSON.parse(text);
+              setForm((prev) => ({
+                ...prev,
+                name: parsedItem.name + " - " + parsedItem.type,
+                quality: parsedItem.quality ?? prev.quality,
+                description: text,
+              }));
+            } catch {
+              setForm((prev) => ({
+                ...prev,
+                description: text,
+              }));
+            }
           });
         }
       }
@@ -147,7 +141,8 @@ export default function HaveItemForm({
             />
           ) : (
             <p className="text-zinc-400 text-sm">
-              Optional: Paste an image from clipboard (Ctrl + V)
+              Optional: Paste the item text (Ctrl + C when hovering item ingame)
+              or image from clipboard (Ctrl + V)
             </p>
           )}
         </div>
