@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { SmilePlus } from "lucide-react";
-import type { LootItem } from "../../types/loot";
 
 const AVAILABLE_REACTIONS = [
   "🔥",
@@ -12,20 +11,18 @@ const AVAILABLE_REACTIONS = [
   "💦",
   "🏄",
   "💀",
+  "🥜",
 ];
 
 type ReactionBarProps = {
-  item: LootItem;
+  itemId: string;
   handleReaction: (id: string, emoji: string) => void;
 };
 
 export default function ReactionBar({
-  item,
+  itemId,
   handleReaction,
 }: ReactionBarProps) {
-  /** ---------------------------
-   * Handle emoji reaction click
-   ---------------------------- */
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
@@ -48,7 +45,7 @@ export default function ReactionBar({
         {AVAILABLE_REACTIONS.map((emoji) => (
           <button
             key={emoji}
-            onClick={() => handleReaction(item.id, emoji)}
+            onClick={() => handleReaction(itemId, emoji)}
             className="text-lg hover:scale-125 transition-transform cursor-pointer"
           >
             {emoji}

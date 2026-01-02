@@ -93,7 +93,7 @@ export default function LootGrid() {
         />
       )}
 
-      {items.length === 0 && (
+      {!loading && items.length === 0 && (
         <div className="text-center py-12">
           <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600">
