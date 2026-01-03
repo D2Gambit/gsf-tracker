@@ -72,11 +72,6 @@ export default function ListItem({
             {truncate(item.name, 30)}
           </h3>
           {item.imageUrl && <Image className="h-5 w-5 text-blue-700" />}
-          {hasParsedDescription(item.description) && (
-            <div title="Item has detailed description">
-              <FileText className="h-5 w-5 text-indigo-600" />
-            </div>
-          )}
           <span
             className={`px-2 py-0.5 rounded-full text-xs ${getQualityColor(
               item.quality
