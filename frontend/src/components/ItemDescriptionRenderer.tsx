@@ -1,7 +1,4 @@
-export type ParsedItem = {
-  name?: string;
-  stats: { name: string; value?: string | number | any }[];
-};
+import type { ParsedItem } from "../types/list";
 
 export type ItemLineType =
   | "header"

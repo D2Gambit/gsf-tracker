@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "../../../AuthContext";
 import { parse } from "zod/v4/core";
+import type { AddHaveItemRequest } from "../../types/list";
 
 type AddHaveItemForm = {
   name: string;
@@ -13,17 +14,13 @@ type AddHaveItemForm = {
 export default function HaveItemForm({
   isModalOpen,
   setIsModalOpen,
-  haveItems,
-  setHaveItems,
-  addItem,
   editItem,
+  addHaveItem,
 }: {
   isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  haveItems: any[];
-  setHaveItems: React.Dispatch<React.SetStateAction<any[]>>;
-  addItem: (id: string) => void;
   editItem: any;
+  addHaveItem: (item: AddHaveItemRequest, editItemId: string) => Promise<void>;
 }) {
   const [form, setForm] = useState<AddHaveItemForm>({
     name: editItem.name,
@@ -41,48 +38,19 @@ export default function HaveItemForm({
   const handleAddHaveItemConfirmClick = async () => {
     setIsModalOpen(false); // closes the modal
 
-    const formData = new FormData();
-    formData.append("image", form.image!);
-    formData.append("gsfGroupId", session?.gsfGroupId?.toString() || "Unknown");
-    formData.append("name", form.name);
-    formData.append(
-      "description",
-      form.description ? form.description : "No description provided."
-    );
-    formData.append("foundBy", parsedUserInfo.accountName);
-    formData.append("quality", form.quality ? form.quality : "No Quality");
-    formData.append("location", form.location ? form.location : "N/A");
+    const req: AddHaveItemRequest = {
+      image: form.image!,
+      gsfGroupId: session?.gsfGroupId?.toString() || "Unknown",
+      name: form.name,
+      description: form.description,
+      foundBy: parsedUserInfo.accountName,
+      quality: form.quality ? form.quality : "No Quality",
+      location: form.location ? form.location : "N/A",
+      isReserved: editItem.id ? editItem.isReserved.toString() : "false",
+      reservedBy: editItem.id ? editItem.reservedBy : "",
+    };
 
-    if (editItem.id !== undefined) {
-      formData.append("isReserved", editItem.isReserved.toString());
-      formData.append("reservedBy", editItem.reservedBy);
-    }
-
-    try {
-      const res = await fetch("/api/add-have-item", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error("Request failed");
-      }
-
-      if (editItem.id !== undefined) {
-        await fetch(`/api/delete-have-item/${editItem.id}`, {
-          method: "DELETE",
-        });
-      }
-
-      const data = await res.json();
-      setHaveItems([
-        data,
-        ...haveItems.filter((item) => editItem.id !== item.id),
-      ]);
-      addItem(data.id);
-    } catch (err) {
-      console.error("Error calling backend:", err);
-    }
+    addHaveItem(req, editItem.id);
   };
 
   useEffect(() => {
