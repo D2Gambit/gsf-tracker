@@ -72,8 +72,10 @@ export default function ItemListTabs({
               (
               {
                 itemList.filter((i) => {
-                  (i as HaveItem).foundBy === accountName &&
-                    (i as HaveItem).isReserved;
+                  return (
+                    (i as HaveItem).foundBy === accountName &&
+                    (i as HaveItem).isReserved
+                  );
                 }).length
               }
               )
