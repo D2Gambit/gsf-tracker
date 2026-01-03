@@ -12,7 +12,7 @@ export type ItemLineType =
   | "flavor";
 
 export interface ParsedItemLine {
-  itemStatLine: string;
+  text: string;
   type: ItemLineType;
 }
 
@@ -90,14 +90,14 @@ export default function ItemDescriptionRenderer({
     parts = description;
   } else {
     // string fallback
-    const itemStats = description.trim();
-    parts = itemStats
+    const text = description.trim();
+    parts = text
       .split(/,(?![^(]*\))/)
       .map((s) => s.trim())
       .filter(Boolean);
 
-    if (itemStats.includes("\n")) {
-      const lines = itemStats
+    if (text.includes("\n")) {
+      const lines = text
         .split("\n")
         .map((s) => s.trim())
         .filter(Boolean);

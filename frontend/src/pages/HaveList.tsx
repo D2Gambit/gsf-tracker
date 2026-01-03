@@ -199,15 +199,15 @@ export default function HaveList() {
   // normalize a description so ItemModal/ItemDescriptionRenderer gets either
   // a ParsedItem or a plain string. returns { description, name? }
   const normalizeDescriptionForModal = (
-    rawDesc: string | undefined,
+    raw: string | undefined,
     fallbackName?: string
   ) => {
-    const desc = (rawDesc ?? "").trim();
-    if (!desc)
+    const text = (raw ?? "").trim();
+    if (!text)
       return { description: "No description provided.", name: fallbackName };
 
     try {
-      const parsed = JSON.parse(desc);
+      const parsed = JSON.parse(text);
       if (parsed?.stats && Array.isArray(parsed.stats)) {
         return {
           description: parsed as ParsedItem,
@@ -219,14 +219,14 @@ export default function HaveList() {
     }
 
     // fallback: return raw string (kept as-is for renderer to split/format)
-    return { description: desc, name: fallbackName };
+    return { description: text, name: fallbackName };
   };
 
   // detect if saved description is a parsed JSON payload (from clipboard)
-  const hasParsedDescription = (rawDesc?: string) => {
-    if (!rawDesc) return false;
+  const hasParsedDescription = (raw?: string) => {
+    if (!raw) return false;
     try {
-      const parsed = JSON.parse(rawDesc);
+      const parsed = JSON.parse(raw);
       return !!(parsed && Array.isArray(parsed.stats));
     } catch {
       return false;
@@ -388,7 +388,7 @@ export default function HaveList() {
                           )}`}
                           title={item.quality}
                         >
-                          {/* {truncate(item.quality, 30)} */}
+                          {truncate(item.quality, 30)}
                         </span>
                         {item.isReserved && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
