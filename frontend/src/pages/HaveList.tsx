@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ParsedItem } from "../types/list";
+import type { ParsedItem, TabTypes } from "../types/list";
 import {
   Search,
   Edit,
@@ -24,6 +24,7 @@ import { useHaves } from "../hooks/useHaves";
 import ListFilter from "../components/have-list/ListFilter";
 import type { ModalContent } from "../types/modal";
 import { HoverPreview } from "../components/have-list/HoverPreview";
+import ItemListTabs from "../components/ItemListTabs";
 
 export default function HaveList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,6 +35,7 @@ export default function HaveList() {
   const [showReservedOnly, setShowReservedOnly] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<HaveItem | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [activeTab, setActiveTab] = useState<TabTypes>("all");
 
   const { session } = useAuth();
   const {
@@ -47,8 +49,7 @@ export default function HaveList() {
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
-  const accountName =
-    parsedUserInfo?.accountName || (session as any)?.accountName || "";
+  const accountName = parsedUserInfo?.accountName;
 
   const createListStats = (): ListStat[] => {
     const listStats: ListStat[] = [];
@@ -82,6 +83,12 @@ export default function HaveList() {
     loadHaves(session?.gsfGroupId);
   }, [session?.gsfGroupId]);
 
+  useEffect(() => {
+    setSearchTerm("");
+    setSelectedQualities([]);
+    setShowReservedOnly(false);
+  }, [activeTab]);
+
   const filteredItems = haveItems.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,7 +101,9 @@ export default function HaveList() {
     const matchesReserved =
       !showReservedOnly || (!item.isReserved && item.foundBy !== accountName);
 
-    return matchesSearch && matchesQuality && matchesReserved;
+    const matchesTab = activeTab === "all" || item.foundBy === accountName;
+
+    return matchesSearch && matchesQuality && matchesReserved && matchesTab;
   });
 
   const editItem = (id: string) => {
@@ -126,6 +135,12 @@ export default function HaveList() {
               Track items your group has found and available for distribution.
             </p>
           </div>
+
+          <ItemListTabs
+            itemList={haveItems}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
 
           <ListFilter
             searchTerm={searchTerm}

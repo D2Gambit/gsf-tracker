@@ -24,6 +24,18 @@ export interface HaveItem {
   imageUrl: string;
 }
 
+export interface NeedItem {
+  id: string;
+  name: string;
+  description: string;
+  priority: "High" | "Medium" | "Low";
+  requestedBy: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export type TabTypes = "all" | "mine";
+
 export type ParsedItem = {
   name?: string;
   stats: { name: string; value?: string | number | any }[];
