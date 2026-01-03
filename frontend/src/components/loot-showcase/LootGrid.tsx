@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Upload } from "lucide-react";
 import UploadLootForm from "./UploadLootForm";
 import ImageModal from "../ImageModal";
 import ImageTooltip from "../ImageTooltip";
 import LootCard from "./LootCard";
-import { sortLootWithTopReactions } from "../../utils/sorting";
+import { removeHotItems } from "../../utils/sorting";
 import { useAuth } from "../../../AuthContext";
 import { useFinds } from "../../hooks/useFinds";
 import { useReactions } from "../../hooks/useReactions";
@@ -17,13 +17,15 @@ export default function LootGrid() {
 
   const [clickedImage, setClickedImage] = useState("");
   const [hoveredImage, setHoveredImage] = useState("");
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   /** ---------------------------
    * Domain state (hooks)
    ---------------------------- */
   const { session } = useAuth();
 
-  const { items, loading, loadFinds, saveFind } = useFinds();
+  const { items, hotItems, loading, loadFinds, saveFind, loadHotFinds } =
+    useFinds();
 
   const { reactions, loadReactions, saveReaction } = useReactions();
 
@@ -33,17 +35,39 @@ export default function LootGrid() {
 
   useEffect(() => {
     if (!session?.gsfGroupId) return;
-    loadFinds(session.gsfGroupId);
+    loadFinds(session.gsfGroupId, true); // reset
   }, [session?.gsfGroupId]);
+
+  useEffect(() => {
+    if (!session?.gsfGroupId) return;
+    loadHotFinds(session.gsfGroupId);
+  }, [session?.gsfGroupId]);
+
+  useEffect(() => {
+    if (!loadMoreRef.current || !session?.gsfGroupId) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading) {
+          loadFinds(session.gsfGroupId);
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(loadMoreRef.current);
+
+    return () => observer.disconnect();
+  }, [loadMoreRef, session?.gsfGroupId, loading]);
 
   useEffect(() => {
     if (!session?.gsfGroupId) return;
     loadReactions(session.gsfGroupId);
   }, [session?.gsfGroupId]);
 
-  const sortedItems = useMemo(
-    () => sortLootWithTopReactions(items, reactions, 3),
-    [items, reactions]
+  const removedHotItemsList = useMemo(
+    () => removeHotItems(items, hotItems),
+    [items, hotItems]
   );
 
   return (
@@ -59,15 +83,27 @@ export default function LootGrid() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading && <p className="text-zinc-400">Loading finds...</p>}
+      {loading && <p className="text-zinc-400">Loading finds...</p>}
 
-        {sortedItems.map((item, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {hotItems.map((item, i) => (
           <LootCard
             key={item.id}
             index={String(i)}
             item={item}
-            isHot={i >= 0 && i <= 2 && reactions[item.id] !== undefined}
+            isHot={true}
+            itemReactions={reactions[item.id]}
+            saveReaction={saveReaction}
+            setHoveredImage={setHoveredImage}
+            setClickedImage={setClickedImage}
+          />
+        ))}
+        {removedHotItemsList.map((item, i) => (
+          <LootCard
+            key={item.id}
+            index={String(i)}
+            item={item}
+            isHot={false}
             itemReactions={reactions[item.id]}
             saveReaction={saveReaction}
             setHoveredImage={setHoveredImage}
@@ -100,6 +136,12 @@ export default function LootGrid() {
             No loot uploaded yet. Start sharing your amazing finds!
           </p>
         </div>
+      )}
+
+      <div ref={loadMoreRef} className="h-10" />
+
+      {loading && (
+        <p className="text-center text-zinc-500 mt-4">Loading more finds...</p>
       )}
     </section>
   );

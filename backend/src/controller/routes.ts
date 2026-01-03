@@ -3,6 +3,7 @@ import {
   createFind,
   createFindReaction,
   getGsfReactions,
+  getHotFinds,
   getLatestFinds,
 } from "../store/finds_store";
 import { uploadLootImage } from "../config/db";
@@ -33,7 +34,28 @@ api.get("/health", (c) => {
 });
 
 api.get("/finds/:gsfGroupId", async (c) => {
-  const finds = await getLatestFinds(c.req.param("gsfGroupId"));
+  const gsfGroupId = c.req.param("gsfGroupId");
+  const limit = Number(c.req.query("limit") ?? 9);
+
+  const cursorParam = c.req.query("cursor");
+  const cursor = cursorParam
+    ? (() => {
+        const parsed = JSON.parse(cursorParam);
+        return {
+          ...parsed,
+          createdAt: new Date(parsed.createdAt),
+        };
+      })()
+    : undefined;
+
+  const finds = await getLatestFinds(gsfGroupId, limit, cursor);
+  return c.json(finds);
+});
+
+api.get("/hot-finds/:gsfGroupId", async (c) => {
+  const gsfGroupId = c.req.param("gsfGroupId");
+
+  const finds = await getHotFinds(gsfGroupId);
   return c.json(finds);
 });
 

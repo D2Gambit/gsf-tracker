@@ -1,8 +1,22 @@
 import type { LootUploadItem } from "../types/loot";
 
-export async function fetchFinds(groupId: string) {
-  const res = await fetch(`/api/finds/${groupId}`);
+export async function fetchFinds(groupId: string, limit = 9, cursor?: string) {
+  const params = new URLSearchParams({
+    limit: String(limit),
+  });
+
+  if (cursor) params.append("cursor", cursor);
+
+  const res = await fetch(`/api/finds/${groupId}?${params.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch finds");
+
+  return res.json();
+}
+
+export async function fetchHotFinds(groupId: string) {
+  const res = await fetch(`/api/hot-finds/${groupId}`);
+  if (!res.ok) throw new Error("Failed to fetch hot finds");
+
   return res.json();
 }
 
