@@ -199,15 +199,15 @@ export default function HaveList() {
   // normalize a description so ItemModal/ItemDescriptionRenderer gets either
   // a ParsedItem or a plain string. returns { description, name? }
   const normalizeDescriptionForModal = (
-    raw: string | undefined,
+    rawDesc: string | undefined,
     fallbackName?: string
   ) => {
-    const text = (raw ?? "").trim();
-    if (!text)
+    const itemDesc = (rawDesc ?? "").trim();
+    if (!itemDesc)
       return { description: "No description provided.", name: fallbackName };
 
     try {
-      const parsed = JSON.parse(text);
+      const parsed = JSON.parse(itemDesc);
       if (parsed?.stats && Array.isArray(parsed.stats)) {
         return {
           description: parsed as ParsedItem,
@@ -219,14 +219,14 @@ export default function HaveList() {
     }
 
     // fallback: return raw string (kept as-is for renderer to split/format)
-    return { description: text, name: fallbackName };
+    return { description: itemDesc, name: fallbackName };
   };
 
   // detect if saved description is a parsed JSON payload (from clipboard)
-  const hasParsedDescription = (raw?: string) => {
-    if (!raw) return false;
+  const hasParsedDescription = (rawDesc?: string) => {
+    if (!rawDesc) return false;
     try {
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(rawDesc);
       return !!(parsed && Array.isArray(parsed.stats));
     } catch {
       return false;
