@@ -34,7 +34,7 @@ export interface NeedItem {
   createdAt: string;
 }
 
-export type TabTypes = "all" | "mine";
+export type TabTypes = "all" | "mine" | "requests";
 
 export type ParsedItem = {
   name?: string;

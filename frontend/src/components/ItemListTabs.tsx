@@ -15,6 +15,8 @@ export default function ItemListTabs({
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
   const accountName = parsedUserInfo?.accountName;
 
+  const isHaveList = itemList.length > 0 && "foundBy" in itemList[0];
+
   return (
     <div className="mt-4 mb-4 border-b border-zinc-600">
       <nav className="flex space-x-6">
@@ -55,6 +57,29 @@ export default function ItemListTabs({
             )
           </span>
         </button>
+
+        {isHaveList && (
+          <button
+            onClick={() => setActiveTab("requests")}
+            className={`pb-2 text-sm font-medium transition-colors ${
+              activeTab === "requests"
+                ? "border-b-2 border-red-500 text-red-500"
+                : "text-zinc-400 hover:text-zinc-200"
+            }`}
+          >
+            Requests
+            <span className="ml-2 text-xs text-zinc-400">
+              (
+              {
+                itemList.filter((i) => {
+                  (i as HaveItem).foundBy === accountName &&
+                    (i as HaveItem).isReserved;
+                }).length
+              }
+              )
+            </span>
+          </button>
+        )}
       </nav>
     </div>
   );

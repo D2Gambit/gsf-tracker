@@ -101,7 +101,14 @@ export default function HaveList() {
     const matchesReserved =
       !showReservedOnly || (!item.isReserved && item.foundBy !== accountName);
 
-    const matchesTab = activeTab === "all" || item.foundBy === accountName;
+    const matchesTab =
+      activeTab === "all"
+        ? true
+        : activeTab === "mine"
+        ? item.foundBy === accountName
+        : activeTab === "requests"
+        ? item.foundBy === accountName && item.isReserved
+        : true;
 
     return matchesSearch && matchesQuality && matchesReserved && matchesTab;
   });
