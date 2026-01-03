@@ -17,12 +17,13 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
 import ItemModal from "../components/ItemModal";
 import ListStats from "../components/have-list/ListStats";
-import LineItem from "../components/have-list/ListItem";
+import ListItem from "../components/have-list/ListItem";
 import type { HaveItem, ListStat } from "../types/list";
 import { getQualityColor } from "../utils/colors";
 import { useHaves } from "../hooks/useHaves";
 import ListFilter from "../components/have-list/ListFilter";
 import type { ModalContent } from "../types/modal";
+import { HoverPreview } from "../components/have-list/HoverPreview";
 
 export default function HaveList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,7 +32,8 @@ export default function HaveList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
   const [showReservedOnly, setShowReservedOnly] = useState(false);
-  // image modal is handled via modalContent (ItemModal) now
+  const [hoveredItem, setHoveredItem] = useState<HaveItem | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const { session } = useAuth();
   const {
@@ -149,13 +151,18 @@ export default function HaveList() {
             ) : (
               <div className="divide-y divide-gray-200">
                 {filteredItems.map((item) => (
-                  <LineItem
+                  <ListItem
                     key={item.id}
                     item={item}
                     editItem={editItem}
                     deleteHaveItem={deleteHaveItem}
                     toggleReservation={toggleReservation}
                     setModalContent={setModalContent}
+                    onHover={(e) => {
+                      setHoveredItem(item);
+                      setMousePos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onLeave={() => setHoveredItem(null)}
                   />
                 ))}
               </div>
@@ -167,6 +174,10 @@ export default function HaveList() {
               content={modalContent}
               onClose={() => setModalContent(null)}
             />
+          )}
+
+          {hoveredItem && (
+            <HoverPreview item={hoveredItem} position={mousePos} />
           )}
 
           {isModalOpen && (

@@ -1,5 +1,5 @@
-import ItemDescriptionRenderer from "./ItemDescriptionRenderer";
-import type { ParsedItem } from "./ItemDescriptionRenderer";
+import ItemDescriptionRenderer from "../components/have-list/ItemDescriptionRenderer";
+import type { ParsedItem } from "../types/list";
 
 interface Props {
   content:

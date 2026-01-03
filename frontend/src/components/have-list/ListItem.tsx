@@ -14,6 +14,8 @@ type ListItemProps = {
   deleteHaveItem: (itemId: string) => Promise<void>;
   toggleReservation: (itemId: string) => Promise<void>;
   setModalContent: React.Dispatch<React.SetStateAction<ModalContent | null>>;
+  onHover: (e: React.MouseEvent) => void;
+  onLeave: () => void;
 };
 
 export default function ListItem({
@@ -22,11 +24,33 @@ export default function ListItem({
   deleteHaveItem,
   toggleReservation,
   setModalContent,
+  onHover,
+  onLeave,
 }: ListItemProps) {
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
   const accountName = parsedUserInfo.accountName;
 
+  const handleItemClicked = () => {
+    if (item.imageUrl) {
+      setModalContent({
+        type: "image",
+        imageUrl: item.imageUrl,
+      });
+      return;
+    }
+    const normalized = normalizeDescriptionForModal(
+      item.description,
+      item.name
+    );
+    setModalContent({
+      type: "text",
+      description: normalized.description,
+      name: normalized.name ?? item.name,
+      foundBy: item.foundBy,
+      quality: item.quality as string | undefined,
+    });
+  };
   return (
     <div
       key={item.id}
@@ -35,26 +59,10 @@ export default function ListItem({
       <div
         className={`col-span-2 ${"hover:cursor-pointer"}`}
         title="Click to view details"
-        onClick={() => {
-          if (item.imageUrl) {
-            setModalContent({
-              type: "image",
-              imageUrl: item.imageUrl,
-            });
-            return;
-          }
-          const normalized = normalizeDescriptionForModal(
-            item.description,
-            item.name
-          );
-          setModalContent({
-            type: "text",
-            description: normalized.description,
-            name: normalized.name ?? item.name,
-            foundBy: item.foundBy,
-            quality: item.quality as string | undefined,
-          });
-        }}
+        onMouseEnter={onHover}
+        onMouseMove={onHover}
+        onMouseLeave={onLeave}
+        onClick={handleItemClicked}
       >
         <div className="flex items-center gap-3 mb-2">
           <h3
