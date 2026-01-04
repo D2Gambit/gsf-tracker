@@ -4,6 +4,7 @@ type ItemListTabsProps = {
   itemList: NeedItem[] | HaveItem[];
   activeTab: TabKey;
   setActiveTab: React.Dispatch<React.SetStateAction<TabKey>>;
+  isHaveList: boolean;
   counts: {
     allCount: number;
     myItemsCount: number;
@@ -15,13 +16,12 @@ export default function ItemListTabs({
   itemList,
   activeTab,
   setActiveTab,
+  isHaveList,
   counts,
 }: ItemListTabsProps) {
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
   const accountName = parsedUserInfo?.accountName;
-
-  const isHaveList = itemList.length > 0 && "foundBy" in itemList[0];
 
   return (
     <div className="mt-4 mb-4 border-b border-zinc-600">

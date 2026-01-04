@@ -147,20 +147,30 @@ api.get("/have-items/:gsfGroupId", async (c) => {
   const tab = c.req.query("tab") ?? "all";
   const cursorParam = c.req.query("cursor");
   const accountName = c.req.query("accountName") ?? "";
-  const cursor = cursorParam
-    ? (() => {
-        const parsed = JSON.parse(cursorParam);
-        return {
-          ...parsed,
-          createdAt: new Date(parsed.createdAt),
-        };
-      })()
-    : undefined;
+  const search = c.req.query("search");
+  const qualities = c.req.queries("qualities");
+  const reservable = c.req.query("reservable");
+  const cursor =
+    cursorParam && cursorParam !== "null"
+      ? (() => {
+          const parsed = JSON.parse(cursorParam);
+
+          if (!parsed?.createdAt) return undefined;
+
+          return {
+            ...parsed,
+            createdAt: new Date(parsed.createdAt),
+          };
+        })()
+      : undefined;
   const result = await getHaveItems(
     c.req.param("gsfGroupId"),
     tab,
-    accountName,
     limit,
+    search,
+    qualities,
+    reservable !== undefined ? reservable === "true" : undefined,
+    accountName,
     cursor
   );
 

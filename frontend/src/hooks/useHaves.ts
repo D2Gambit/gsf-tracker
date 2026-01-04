@@ -22,21 +22,27 @@ export function useHaves() {
       cursor: null,
       hasMore: true,
       loading: false,
+      loadingMore: false,
       initialLoaded: false,
+      filters: {},
     },
     mine: {
       items: [],
       cursor: null,
       hasMore: true,
       loading: false,
+      loadingMore: false,
       initialLoaded: false,
+      filters: {},
     },
     requests: {
       items: [],
       cursor: null,
       hasMore: true,
       loading: false,
+      loadingMore: false,
       initialLoaded: false,
+      filters: {},
     },
   });
 
@@ -44,14 +50,18 @@ export function useHaves() {
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
   async function loadHaves(groupId: string, tab: TabKey, reset = false) {
-    setTabData((prev) => ({
-      ...prev,
-      [tab]: { ...prev[tab], loading: true },
-    }));
-
     const state = tabData[tab];
 
     if (!state.hasMore && !reset) return;
+
+    setTabData((prev) => ({
+      ...prev,
+      [tab]: {
+        ...prev[tab],
+        loading: reset,
+        loadingMore: !reset,
+      },
+    }));
 
     try {
       setLoading(true);
@@ -61,7 +71,8 @@ export function useHaves() {
         tab,
         parsedUserInfo.accountName,
         20,
-        reset ? undefined : JSON.stringify(state.cursor)
+        state.cursor ? JSON.stringify(state.cursor) : undefined,
+        state.filters
       );
 
       setTabData((prev) => {
@@ -77,6 +88,7 @@ export function useHaves() {
             cursor: res.nextCursor,
             hasMore: Boolean(res.nextCursor),
             loading: false,
+            loadingMore: false,
             initialLoaded: true,
           },
         };
@@ -155,5 +167,6 @@ export function useHaves() {
     deleteHaveItem,
     toggleReservation,
     tabData,
+    setTabData,
   };
 }

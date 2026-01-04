@@ -1,4 +1,12 @@
-import { eq, and, lt, or } from "drizzle-orm/sql/expressions/conditions";
+import {
+  eq,
+  and,
+  lt,
+  or,
+  ilike,
+  inArray,
+  ne,
+} from "drizzle-orm/sql/expressions/conditions";
 import { desc, sql } from "drizzle-orm";
 import { db } from "../config/db";
 import { haveItems } from "../config/schema";
@@ -21,44 +29,66 @@ export const createHaveItem = async (data: {
 export const getHaveItems = async (
   gsfGroupId: string,
   tab: string,
-  accountName: string,
   limit: number,
+  search?: string,
+  qualities?: string[],
+  reservable?: boolean,
+  accountName?: string,
   cursor?: { createdAt: Date; id: number }
 ) => {
-  let where = and(
+  const conditions = [
     eq(haveItems.gsfGroupId, gsfGroupId),
-    eq(haveItems.isActive, true)
-  );
+    eq(haveItems.isActive, true),
+  ];
 
   if (tab === "mine") {
-    where = and(where, eq(haveItems.foundBy, accountName!));
+    conditions.push(eq(haveItems.foundBy, accountName!));
   }
 
   if (tab === "requests") {
-    where = and(
-      where,
-      eq(haveItems.foundBy, accountName!),
-      eq(haveItems.isReserved, true)
+    conditions.push(eq(haveItems.foundBy, accountName!));
+    conditions.push(eq(haveItems.isReserved, true));
+  }
+
+  if (search) {
+    conditions.push(
+      or(
+        ilike(haveItems.name, `%${search}%`),
+        ilike(haveItems.description, `%${search}%`)
+      )!
     );
   }
 
+  if (qualities?.length) {
+    conditions.push(inArray(haveItems.quality, qualities));
+  }
+
+  if (reservable !== undefined) {
+    const reservableCondition = and(
+      eq(haveItems.isReserved, !reservable),
+      ne(haveItems.foundBy, accountName!)
+    );
+    if (reservableCondition) {
+      conditions.push(reservableCondition);
+    }
+  }
+
   if (cursor) {
-    where = and(
-      where,
+    conditions.push(
       or(
         lt(haveItems.createdAt, cursor.createdAt),
         and(
           eq(haveItems.createdAt, cursor.createdAt),
           lt(haveItems.id, cursor.id)
         )
-      )
+      )!
     );
   }
 
   const rows = await db
     .select()
     .from(haveItems)
-    .where(where)
+    .where(and(...conditions))
     .orderBy(desc(haveItems.createdAt), desc(haveItems.id))
     .limit(limit + 1);
 

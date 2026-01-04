@@ -1,11 +1,12 @@
-import type { AddHaveItemRequest } from "../types/list";
+import type { AddHaveItemRequest, HaveFilters } from "../types/list";
 
 export async function fetchHaveItems(
   groupId: string,
   tab: string,
   accountName: string,
   limit = 20,
-  cursor?: string
+  cursor?: string,
+  filters?: HaveFilters
 ) {
   const params = new URLSearchParams({
     limit: String(limit),
@@ -14,6 +15,16 @@ export async function fetchHaveItems(
   if (cursor) params.append("cursor", cursor);
   if (tab) params.append("tab", tab);
   if (accountName) params.append("accountName", accountName);
+
+  if (filters?.search) {
+    params.set("search", filters.search);
+  }
+
+  filters?.qualities?.forEach((q) => params.append("qualities", q));
+
+  if (filters?.reservable !== undefined) {
+    params.set("reservable", String(filters.reservable));
+  }
 
   const res = await fetch(`/api/have-items/${groupId}?${params.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch have items");

@@ -41,7 +41,15 @@ export type TabState = {
   cursor: { createdAt: string; id: number } | null;
   hasMore: boolean;
   loading: boolean;
+  loadingMore: boolean;
   initialLoaded: boolean;
+  filters: HaveFilters;
+};
+
+export type HaveFilters = {
+  search?: string;
+  qualities?: string[];
+  reservable?: boolean;
 };
 
 export type ParsedItem = {

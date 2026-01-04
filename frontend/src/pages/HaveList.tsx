@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { TabKey } from "../types/list";
+import type { HaveFilters, TabKey } from "../types/list";
 import { Plus, Package } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -17,6 +17,7 @@ import { HoverPreview } from "../components/have-list/HoverPreview";
 import ItemListTabs from "../components/ItemListTabs";
 import { fetchHaveItemCounts } from "../api/haves.api";
 import { useNavigate } from "react-router-dom";
+import { useDebounce } from "../hooks/useDebounce";
 
 export default function HaveList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,6 +45,7 @@ export default function HaveList() {
     deleteHaveItem,
     toggleReservation,
     tabData,
+    setTabData,
   } = useHaves();
 
   const userInfo = localStorage.getItem("gsfUserInfo");
@@ -57,6 +59,7 @@ export default function HaveList() {
   }
 
   const currentTab = tabData[activeTab];
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
   const createListStats = (): ListStat[] => {
     const listStats: ListStat[] = [];
@@ -85,12 +88,40 @@ export default function HaveList() {
     return listStats;
   };
 
+  function updateFilters(filters: HaveFilters) {
+    setTabData((prev) => ({
+      ...prev,
+      [activeTab]: {
+        ...prev[activeTab],
+        filters,
+        items: [],
+        cursor: null,
+        hasMore: true,
+        initialLoaded: false,
+      },
+    }));
+  }
+
   useEffect(() => {
-    const tabState = tabData[activeTab];
-    if (tabState.items.length === 0 && tabState.hasMore) {
-      loadHaves(session?.gsfGroupId!, activeTab, true);
+    const prevFilters = tabData[activeTab].filters;
+    const derivedFilters: HaveFilters = {
+      search: debouncedSearch.trim() || undefined,
+      qualities: selectedQualities.length ? selectedQualities : undefined,
+      reservable: showReservedOnly ? true : undefined,
+    };
+
+    if (JSON.stringify(prevFilters) !== JSON.stringify(derivedFilters)) {
+      updateFilters(derivedFilters);
     }
-  }, [session?.gsfGroupId, activeTab]);
+  }, [debouncedSearch, activeTab, selectedQualities, showReservedOnly]);
+
+  useEffect(() => {
+    if (!session?.gsfGroupId) return;
+
+    if (!currentTab.initialLoaded) {
+      loadHaves(session.gsfGroupId, activeTab, true);
+    }
+  }, [session?.gsfGroupId, activeTab, currentTab.initialLoaded]);
 
   useEffect(() => {
     setSearchTerm("");
@@ -133,10 +164,6 @@ export default function HaveList() {
   }, [session?.gsfGroupId, activeTab, currentTab.loading, currentTab.hasMore]);
 
   const filteredItems = currentTab.items.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase());
-
     const matchesQuality =
       selectedQualities.length === 0 ||
       selectedQualities.includes(item.quality);
@@ -153,7 +180,7 @@ export default function HaveList() {
         ? item.foundBy === accountName && item.isReserved
         : true;
 
-    return matchesSearch && matchesQuality && matchesReserved && matchesTab;
+    return matchesQuality && matchesReserved && matchesTab;
   });
 
   const editItem = (id: string) => {
@@ -191,6 +218,7 @@ export default function HaveList() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             counts={counts}
+            isHaveList={true}
           />
 
           <ListFilter
@@ -204,8 +232,7 @@ export default function HaveList() {
 
           {/* Items List */}
           <div className="bg-zinc-300 rounded-lg border border-gray-200 overflow-hidden">
-            {loading && <p className="text-zinc-400">Loading have items...</p>}
-            {filteredItems.length === 0 ? (
+            {currentTab.initialLoaded && filteredItems.length === 0 ? (
               <div className="text-center py-12">
                 <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">
@@ -255,7 +282,7 @@ export default function HaveList() {
             />
           )}
 
-          {currentTab.loading && (
+          {currentTab.loadingMore && (
             <p className="text-center text-zinc-500 mt-4">
               Loading more items...
             </p>
