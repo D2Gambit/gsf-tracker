@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 type DeleteModalProps = {
   isOpen: boolean;
@@ -9,7 +9,6 @@ type DeleteModalProps = {
   message: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
-  isDanger?: boolean; // If true, makes the button red
 };
 
 export default function DeleteModal({
@@ -20,7 +19,6 @@ export default function DeleteModal({
   message,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
-  isDanger = false,
 }: DeleteModalProps) {
   if (!isOpen) return null;
 
@@ -30,7 +28,7 @@ export default function DeleteModal({
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-2">
-            {isDanger && <AlertTriangle className="h-5 w-5 text-red-500" />}
+            <AlertTriangle className="h-5 w-5 text-red-500" />
             <h3 className="text-xl font-bold text-zinc-100">{title}</h3>
           </div>
         </div>

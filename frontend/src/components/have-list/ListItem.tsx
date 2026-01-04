@@ -183,12 +183,11 @@ export default function ListItem({
         title="Delete Item"
         message={
           <span>
-            Delete <span className="font-extrabold">{item.name}</span>? This
+            Delete <span className="font-extrabold">{item.name}?</span> This
             action cannot be undone.
           </span>
         }
         confirmLabel="Delete"
-        isDanger={true}
       />
     </>
   );
