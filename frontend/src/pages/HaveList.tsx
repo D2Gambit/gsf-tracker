@@ -27,7 +27,7 @@ import { HoverPreview } from "../components/have-list/HoverPreview";
 import ItemListTabs from "../components/ItemListTabs";
 
 export default function HaveList() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<ModalContent | null>(null);
   const [currentItem, setCurrentItem] = useState<Partial<HaveItem>>({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -115,7 +115,7 @@ export default function HaveList() {
 
   const editItem = (id: string) => {
     setCurrentItem(haveItems.find((item) => item.id === id) || {});
-    setIsModalOpen(true);
+    setIsAddItemModalOpen(true);
   };
 
   return (
@@ -131,7 +131,7 @@ export default function HaveList() {
                 className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
                 onClick={() => {
                   setCurrentItem({});
-                  setIsModalOpen(true);
+                  setIsAddItemModalOpen(true);
                 }}
               >
                 <Plus className="h-4 w-4" />
@@ -202,10 +202,10 @@ export default function HaveList() {
             <HoverPreview item={hoveredItem} position={mousePos} />
           )}
 
-          {isModalOpen && (
+          {isAddItemModalOpen && (
             <HaveItemForm
-              isModalOpen={isModalOpen}
-              setIsModalOpen={setIsModalOpen}
+              isAddItemModalOpen={isAddItemModalOpen}
+              setIsAddItemModalOpen={setIsAddItemModalOpen}
               editItem={currentItem}
               addHaveItem={addHaveItem}
             />

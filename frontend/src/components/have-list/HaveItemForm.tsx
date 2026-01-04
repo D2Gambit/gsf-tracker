@@ -12,13 +12,13 @@ type AddHaveItemForm = {
 };
 
 export default function HaveItemForm({
-  isModalOpen,
-  setIsModalOpen,
+  isAddItemModalOpen,
+  setIsAddItemModalOpen,
   editItem,
   addHaveItem,
 }: {
-  isModalOpen: boolean;
-  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isAddItemModalOpen: boolean;
+  setIsAddItemModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   editItem: any;
   addHaveItem: (item: AddHaveItemRequest, editItemId: string) => Promise<void>;
 }) {
@@ -36,7 +36,7 @@ export default function HaveItemForm({
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
   const handleAddHaveItemConfirmClick = async () => {
-    setIsModalOpen(false); // closes the modal
+    setIsAddItemModalOpen(false); // closes the modal
 
     const req: AddHaveItemRequest = {
       image: form.image!,
@@ -54,7 +54,7 @@ export default function HaveItemForm({
   };
 
   useEffect(() => {
-    if (!isModalOpen) return;
+    if (!isAddItemModalOpen) return;
 
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
@@ -90,7 +90,7 @@ export default function HaveItemForm({
 
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
-  }, [isModalOpen]);
+  }, [isAddItemModalOpen]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -165,7 +165,7 @@ export default function HaveItemForm({
         <div className="flex justify-end space-x-3">
           <button
             className="px-4 py-2 rounded bg-zinc-600 text-zinc-100"
-            onClick={() => setIsModalOpen(false)}
+            onClick={() => setIsAddItemModalOpen(false)}
           >
             Cancel
           </button>
