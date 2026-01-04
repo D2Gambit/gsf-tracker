@@ -38,7 +38,6 @@ export default function HaveList() {
 
   const { session } = useAuth();
   const {
-    haveItems,
     loading,
     loadHaves,
     addHaveItem,
@@ -184,7 +183,7 @@ export default function HaveList() {
   });
 
   const editItem = (id: string) => {
-    setCurrentItem(haveItems.find((item) => item.id === id) || {});
+    setCurrentItem(currentTab.items.find((item) => item.id === id) || {});
     setIsModalOpen(true);
   };
 

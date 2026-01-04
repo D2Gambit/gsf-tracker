@@ -14,7 +14,6 @@ import type {
 } from "../types/list";
 
 export function useHaves() {
-  const [haveItems, setHaveItems] = useState<HaveItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [tabData, setTabData] = useState<Record<TabKey, TabState>>({
     all: {
@@ -106,25 +105,46 @@ export function useHaves() {
     try {
       const res = await addHave(item);
       if (editItemId) {
-        deleteHaveItem(editItemId);
+        deleteHaveItem(editItemId, true);
       }
-      setHaveItems([
-        res,
-        ...haveItems.filter((item) => editItemId !== item.id),
-      ]);
-      editItemId
-        ? toast.success("Sucessfully editted item!")
-        : toast.success("Sucessfully added item!");
+      setTabData((prev) =>
+        updateTabs(
+          prev,
+          (items) => {
+            const filtered = editItemId
+              ? items.filter((i) => i.id !== editItemId)
+              : items;
+
+            return [res, ...filtered];
+          },
+          res.foundBy === parsedUserInfo.accountName ? ["all", "mine"] : ["all"]
+        )
+      );
+
+      toast.success(
+        editItemId ? "Successfully edited item!" : "Successfully added item!"
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Unable to add item!");
     }
   }
 
-  async function deleteHaveItem(itemId: string) {
+  async function deleteHaveItem(
+    itemId: string,
+    isEdittedItem: boolean = false
+  ) {
     try {
-      const res = await deleteHave(itemId);
-      setHaveItems((items) => items.filter((item) => item.id !== itemId));
-      toast.success("Item successfully deleted!");
+      await deleteHave(itemId);
+
+      setTabData((prev) =>
+        updateTabs(prev, (items) => items.filter((i) => i.id !== itemId), [
+          "all",
+          "mine",
+          "requests",
+        ])
+      );
+
+      !isEdittedItem && toast.success("Item successfully deleted!");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to delete item!"
@@ -134,24 +154,34 @@ export function useHaves() {
 
   async function toggleReservation(itemId: string) {
     try {
-      const selectedItem = haveItems.find((item) => item.id === itemId);
-      const res = await toggleReserved(
-        itemId,
-        !selectedItem?.isReserved,
-        parsedUserInfo.accountName
-      );
-      setHaveItems((items) =>
-        items.map((item) =>
-          item.id === itemId
-            ? {
-                ...item,
-                isReserved: !selectedItem?.isReserved,
-                reservedBy: parsedUserInfo.accountName,
-              }
-            : item
+      const item =
+        tabData.all.items.find((i) => i.id === itemId) ??
+        tabData.mine.items.find((i) => i.id === itemId);
+
+      if (!item) return;
+
+      const newReserved = !item.isReserved;
+
+      await toggleReserved(itemId, newReserved, parsedUserInfo.accountName);
+
+      setTabData((prev) =>
+        updateTabs(
+          prev,
+          (items) =>
+            items.map((i) =>
+              i.id === itemId
+                ? {
+                    ...i,
+                    isReserved: newReserved,
+                    reservedBy: newReserved ? parsedUserInfo.accountName : null,
+                  }
+                : i
+            ),
+          ["all", "mine", "requests"]
         )
       );
-      toast.success("Item Reserved!");
+
+      toast.success(newReserved ? "Item reserved!" : "Reservation removed!");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Unable to reserve item!"
@@ -160,7 +190,6 @@ export function useHaves() {
   }
 
   return {
-    haveItems,
     loading,
     loadHaves,
     addHaveItem,
@@ -169,4 +198,21 @@ export function useHaves() {
     tabData,
     setTabData,
   };
+}
+
+function updateTabs(
+  prev: Record<TabKey, TabState>,
+  updater: (items: HaveItem[]) => HaveItem[],
+  tabs: TabKey[]
+) {
+  const next = { ...prev };
+
+  tabs.forEach((tab) => {
+    next[tab] = {
+      ...prev[tab],
+      items: updater(prev[tab].items),
+    };
+  });
+
+  return next;
 }
