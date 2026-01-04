@@ -55,23 +55,23 @@ export default function HaveList() {
     const listStats: ListStat[] = [];
     listStats.push({
       statTitle: "Total Items",
-      statValue: String(haveItems.length),
+      statValue: String(currentTab.items.length),
       statColor: "text-gray-900",
     });
     listStats.push({
       statTitle: "Reservable",
-      statValue: String(haveItems.filter((i) => !i.isReserved).length),
+      statValue: String(currentTab.items.filter((i) => !i.isReserved).length),
       statColor: "text-green-600",
     });
     listStats.push({
       statTitle: "Reserved",
-      statValue: String(haveItems.filter((i) => i.isReserved).length),
+      statValue: String(currentTab.items.filter((i) => i.isReserved).length),
       statColor: "text-red-600",
     });
     listStats.push({
       statTitle: "My Posts",
       statValue: String(
-        haveItems.filter((i) => i.foundBy === accountName).length
+        currentTab.items.filter((i) => i.foundBy === accountName).length
       ),
       statColor: "text-blue-800",
     });
