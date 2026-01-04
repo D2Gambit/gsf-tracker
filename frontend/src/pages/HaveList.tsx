@@ -1,15 +1,6 @@
-import { useEffect, useState } from "react";
-import type { ParsedItem, TabTypes } from "../types/list";
-import {
-  Search,
-  Edit,
-  Trash2,
-  Plus,
-  Package,
-  Image,
-  FileText,
-  Filter,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import type { TabKey } from "../types/list";
+import { Plus, Package } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import HaveItemForm from "../components/have-list/HaveItemForm";
@@ -19,12 +10,12 @@ import ItemModal from "../components/ItemModal";
 import ListStats from "../components/have-list/ListStats";
 import ListItem from "../components/have-list/ListItem";
 import type { HaveItem, ListStat } from "../types/list";
-import { getQualityColor } from "../utils/colors";
 import { useHaves } from "../hooks/useHaves";
 import ListFilter from "../components/have-list/ListFilter";
 import type { ModalContent } from "../types/modal";
 import { HoverPreview } from "../components/have-list/HoverPreview";
 import ItemListTabs from "../components/ItemListTabs";
+import { fetchHaveItemCounts } from "../api/haves.api";
 
 export default function HaveList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,7 +26,13 @@ export default function HaveList() {
   const [showReservedOnly, setShowReservedOnly] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<HaveItem | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [activeTab, setActiveTab] = useState<TabTypes>("all");
+  const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [counts, setCounts] = useState({
+    allCount: 0,
+    myItemsCount: 0,
+    requestsCount: 0,
+  });
 
   const { session } = useAuth();
   const {
@@ -45,11 +42,14 @@ export default function HaveList() {
     addHaveItem,
     deleteHaveItem,
     toggleReservation,
+    tabData,
   } = useHaves();
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
   const accountName = parsedUserInfo?.accountName;
+
+  const currentTab = tabData[activeTab];
 
   const createListStats = (): ListStat[] => {
     const listStats: ListStat[] = [];
@@ -79,9 +79,11 @@ export default function HaveList() {
   };
 
   useEffect(() => {
-    if (!session?.gsfGroupId) return;
-    loadHaves(session?.gsfGroupId);
-  }, [session?.gsfGroupId]);
+    const tabState = tabData[activeTab];
+    if (tabState.items.length === 0 && tabState.hasMore) {
+      loadHaves(session?.gsfGroupId!, activeTab, true);
+    }
+  }, [session?.gsfGroupId, activeTab]);
 
   useEffect(() => {
     setSearchTerm("");
@@ -89,7 +91,41 @@ export default function HaveList() {
     setShowReservedOnly(false);
   }, [activeTab]);
 
-  const filteredItems = haveItems.filter((item) => {
+  useEffect(() => {
+    if (!session?.gsfGroupId || !accountName) return;
+
+    fetchHaveItemCounts(session.gsfGroupId, accountName)
+      .then(setCounts)
+      .catch((err) =>
+        toast.error(
+          err instanceof Error ? err.message : "Failed to load counts"
+        )
+      );
+  }, [session?.gsfGroupId, accountName]);
+
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el || !session?.gsfGroupId || !currentTab.initialLoaded) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !currentTab.loading && currentTab.hasMore) {
+          loadHaves(session.gsfGroupId, activeTab);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "200px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, [session?.gsfGroupId, activeTab, currentTab.loading, currentTab.hasMore]);
+
+  const filteredItems = currentTab.items.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -144,9 +180,10 @@ export default function HaveList() {
           </div>
 
           <ItemListTabs
-            itemList={haveItems}
+            itemList={currentTab.items}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            counts={counts}
           />
 
           <ListFilter
@@ -210,6 +247,14 @@ export default function HaveList() {
               addHaveItem={addHaveItem}
             />
           )}
+
+          {currentTab.loading && (
+            <p className="text-center text-zinc-500 mt-4">
+              Loading more items...
+            </p>
+          )}
+
+          {currentTab.hasMore && <div ref={loadMoreRef} className="h-1" />}
 
           <ListStats listStats={createListStats()} />
         </section>

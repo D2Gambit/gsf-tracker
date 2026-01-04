@@ -34,11 +34,23 @@ export interface NeedItem {
   createdAt: string;
 }
 
-export type TabTypes = "all" | "mine" | "requests";
+export type TabKey = "all" | "mine" | "requests";
+
+export type TabState = {
+  items: HaveItem[];
+  cursor: { createdAt: string; id: number } | null;
+  hasMore: boolean;
+  loading: boolean;
+  initialLoaded: boolean;
+};
 
 export type ParsedItem = {
   name?: string;
-  stats: { name: string; value?: string | number | any }[];
+  stats: {
+    corrupted: any;
+    name: string;
+    value?: string | number | any;
+  }[];
 };
 
 export type AddHaveItemRequest = {

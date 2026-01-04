@@ -48,6 +48,8 @@ export const haveItems = pgTable("gsfhaves", {
   quality: text("quality").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   imageUrl: text("image_url"),
+  isActive: boolean("is_active").default(true).notNull(),
+  reservedAt: timestamp("reserved_at"),
 });
 
 export const gsfGroups = pgTable("gsfgroups", {

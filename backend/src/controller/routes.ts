@@ -16,6 +16,7 @@ import {
 import {
   createHaveItem,
   deleteHaveItem,
+  getHaveItemCounts,
   getHaveItems,
   updateHaveItemReservedFlag,
 } from "../store/haves_store";
@@ -142,7 +143,41 @@ api.post("/update-is-active-need-item", async (c) => {
 });
 
 api.get("/have-items/:gsfGroupId", async (c) => {
-  return c.json(await getHaveItems(c.req.param("gsfGroupId")));
+  const limit = Number(c.req.query("limit") ?? 20);
+  const tab = c.req.query("tab") ?? "all";
+  const cursorParam = c.req.query("cursor");
+  const accountName = c.req.query("accountName") ?? "";
+  const cursor = cursorParam
+    ? (() => {
+        const parsed = JSON.parse(cursorParam);
+        return {
+          ...parsed,
+          createdAt: new Date(parsed.createdAt),
+        };
+      })()
+    : undefined;
+  const result = await getHaveItems(
+    c.req.param("gsfGroupId"),
+    tab,
+    accountName,
+    limit,
+    cursor
+  );
+
+  return c.json(result);
+});
+
+api.get("/have-items/counts/:gsfGroupId", async (c) => {
+  const gsfGroupId = c.req.param("gsfGroupId");
+  const accountName = c.req.query("accountName");
+
+  if (!accountName) {
+    return c.json({ error: "accountName required" }, 400);
+  }
+
+  const counts = await getHaveItemCounts(gsfGroupId, accountName);
+
+  return c.json(counts);
 });
 
 api.post("/add-have-item", async (c) => {

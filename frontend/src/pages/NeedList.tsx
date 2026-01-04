@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   Edit,
@@ -12,7 +12,7 @@ import Footer from "../components/Footer";
 import AddNeedItemForm from "../components/AddNeedItemForm";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
-import type { NeedItem, TabTypes } from "../types/list";
+import type { NeedItem, TabKey } from "../types/list";
 import ItemListTabs from "../components/ItemListTabs";
 
 export default function NeedList() {
@@ -26,7 +26,7 @@ export default function NeedList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [needItems, setNeedItems] = useState<NeedItem[]>([]);
   const [currentItem, setCurrentItem] = useState<Partial<NeedItem>>({});
-  const [activeTab, setActiveTab] = useState<TabTypes>("all");
+  const [activeTab, setActiveTab] = useState<TabKey>("all");
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
