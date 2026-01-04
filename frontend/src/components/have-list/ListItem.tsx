@@ -54,10 +54,10 @@ export default function ListItem({
   return (
     <div
       key={item.id}
-      className="grid grid-cols-3 p-6 hover:bg-gray-50 transition-colors"
+      className="grid grid-cols-3 md:grid-cols-6 p-6 hover:bg-gray-50 transition-colors"
     >
       <div
-        className={`col-span-2 ${"hover:cursor-pointer"}`}
+        className={`col-span-2 md:col-span-5 ${"hover:cursor-pointer"} `}
         title="Click to view details"
         onMouseEnter={onHover}
         onMouseMove={onHover}
@@ -65,6 +65,14 @@ export default function ListItem({
         onClick={handleItemClicked}
       >
         <div className="flex items-center gap-3 mb-2">
+          <span
+            className={`w-20 px-2 py-0.5 rounded-full text-xs text-center ${getQualityColor(
+              item.quality
+            )}`}
+            title={item.quality}
+          >
+            {truncate(item.quality, 30)}
+          </span>
           <h3
             className={`text-lg font-semibold bg-opacity-0}`}
             title={item.name}
@@ -72,14 +80,7 @@ export default function ListItem({
             {truncate(item.name, 30)}
           </h3>
           {item.imageUrl && <Image className="h-5 w-5 text-blue-700" />}
-          <span
-            className={`px-2 py-0.5 rounded-full text-xs ${getQualityColor(
-              item.quality
-            )}`}
-            title={item.quality}
-          >
-            {truncate(item.quality, 30)}
-          </span>
+
           {item.isReserved && (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
               Reserved
