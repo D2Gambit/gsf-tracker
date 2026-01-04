@@ -16,6 +16,7 @@ import {
 import {
   createHaveItem,
   deleteHaveItem,
+  getHaveItemCounts,
   getHaveItems,
   updateHaveItemReservedFlag,
 } from "../store/haves_store";
@@ -142,7 +143,51 @@ api.post("/update-is-active-need-item", async (c) => {
 });
 
 api.get("/have-items/:gsfGroupId", async (c) => {
-  return c.json(await getHaveItems(c.req.param("gsfGroupId")));
+  const limit = Number(c.req.query("limit") ?? 20);
+  const tab = c.req.query("tab") ?? "all";
+  const cursorParam = c.req.query("cursor");
+  const accountName = c.req.query("accountName") ?? "";
+  const search = c.req.query("search");
+  const qualities = c.req.queries("qualities");
+  const reservable = c.req.query("reservable");
+  const cursor =
+    cursorParam && cursorParam !== "null"
+      ? (() => {
+          const parsed = JSON.parse(cursorParam);
+
+          if (!parsed?.createdAt) return undefined;
+
+          return {
+            ...parsed,
+            createdAt: new Date(parsed.createdAt),
+          };
+        })()
+      : undefined;
+  const result = await getHaveItems(
+    c.req.param("gsfGroupId"),
+    tab,
+    limit,
+    search,
+    qualities,
+    reservable !== undefined ? reservable === "true" : undefined,
+    accountName,
+    cursor
+  );
+
+  return c.json(result);
+});
+
+api.get("/have-items/counts/:gsfGroupId", async (c) => {
+  const gsfGroupId = c.req.param("gsfGroupId");
+  const accountName = c.req.query("accountName");
+
+  if (!accountName) {
+    return c.json({ error: "accountName required" }, 400);
+  }
+
+  const counts = await getHaveItemCounts(gsfGroupId, accountName);
+
+  return c.json(counts);
 });
 
 api.post("/add-have-item", async (c) => {
@@ -186,13 +231,24 @@ api.post("/reserve-have-item", async (c) => {
 
 api.post("/create-group", async (c) => {
   const body = await c.req.parseBody();
-  const result = await createGroup({
-    gsfGroupId: body.gsfGroupId as string,
-    password: body.password as string,
-    createdAt: new Date(),
-  });
+  try {
+    const result = await createGroup({
+      gsfGroupId: body.gsfGroupId as string,
+      password: body.password as string,
+      createdAt: new Date(),
+    });
 
-  return c.json(result[0]);
+    return c.json(result[0]);
+  } catch (err: any) {
+    if (err.message === "DUPLICATE_REACTION") {
+      return c.json(
+        { error: "GSF Group already exists! Please try again." },
+        409
+      );
+    }
+    console.error(err);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 api.post("/login", async (c) => {
@@ -207,20 +263,31 @@ api.post("/login", async (c) => {
 
 api.post("/create-member", async (c) => {
   const body = await c.req.parseBody();
-  const result = await createMember({
-    gsfGroupId: body.gsfGroupId as string,
-    accountName: body.accountName as string,
-    characterName: body.characterName as string,
-    role: body.role as string,
-    hasPlayedGsf: (body.hasPlayedGsf as string) === "true",
-    createdAt: new Date(),
-    preferredTimezone: body.preferredTimezone as string,
-    preferredClass: body.preferredClass as string,
-    preferredSecondaryClass: body.preferredSecondaryClass as string,
-    discordName: body.discordName as string,
-  });
+  try {
+    const result = await createMember({
+      gsfGroupId: body.gsfGroupId as string,
+      accountName: body.accountName as string,
+      characterName: body.characterName as string,
+      role: body.role as string,
+      hasPlayedGsf: (body.hasPlayedGsf as string) === "true",
+      createdAt: new Date(),
+      preferredTimezone: body.preferredTimezone as string,
+      preferredClass: body.preferredClass as string,
+      preferredSecondaryClass: body.preferredSecondaryClass as string,
+      discordName: body.discordName as string,
+    });
 
-  return c.json(result[0]);
+    return c.json(result[0]);
+  } catch (err: any) {
+    if (err.message === "DUPLICATE_REACTION") {
+      return c.json(
+        { error: "GSF member already exists! Please try again." },
+        409
+      );
+    }
+    console.error(err);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 api.get("/members/:gsfGroupId", async (c) => {

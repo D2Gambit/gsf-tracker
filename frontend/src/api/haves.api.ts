@@ -1,7 +1,32 @@
-import type { AddHaveItemRequest } from "../types/list";
+import type { AddHaveItemRequest, HaveFilters } from "../types/list";
 
-export async function fetchHaveItems(groupId: string) {
-  const res = await fetch(`/api/have-items/${groupId}`);
+export async function fetchHaveItems(
+  groupId: string,
+  tab: string,
+  accountName: string,
+  limit = 20,
+  cursor?: string,
+  filters?: HaveFilters
+) {
+  const params = new URLSearchParams({
+    limit: String(limit),
+  });
+
+  if (cursor) params.append("cursor", cursor);
+  if (tab) params.append("tab", tab);
+  if (accountName) params.append("accountName", accountName);
+
+  if (filters?.search) {
+    params.set("search", filters.search);
+  }
+
+  filters?.qualities?.forEach((q) => params.append("qualities", q));
+
+  if (filters?.reservable !== undefined) {
+    params.set("reservable", String(filters.reservable));
+  }
+
+  const res = await fetch(`/api/have-items/${groupId}?${params.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch have items");
 
   return res.json();
@@ -13,6 +38,23 @@ export async function deleteHave(itemId: string) {
   });
   if (!res.ok) throw new Error("Failed to delete item");
   return res.json();
+}
+
+export async function fetchHaveItemCounts(
+  gsfGroupId: string,
+  accountName: string
+) {
+  const res = await fetch(
+    `/api/have-items/counts/${gsfGroupId}?accountName=${encodeURIComponent(
+      accountName
+    )}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch item counts");
+  return res.json() as Promise<{
+    allCount: number;
+    myItemsCount: number;
+    requestsCount: number;
+  }>;
 }
 
 export async function addHave(data: AddHaveItemRequest) {

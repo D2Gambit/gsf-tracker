@@ -6,38 +6,92 @@ import {
   toggleReserved,
 } from "../api/haves.api";
 import { toast } from "react-toastify";
-import type { AddHaveItemRequest, HaveItem } from "../types/list";
+import type {
+  AddHaveItemRequest,
+  HaveItem,
+  TabKey,
+  TabState,
+} from "../types/list";
 
 export function useHaves() {
-  const [haveItems, setHaveItems] = useState<HaveItem[]>([]);
   const [loading, setLoading] = useState(false);
-  //   const [cursor, setCursor] = useState<{
-  //     createdAt: string;
-  //     id: string;
-  //   } | null>(null);
-  //   const [hasMore, setHasMore] = useState(true);
+  const [tabData, setTabData] = useState<Record<TabKey, TabState>>({
+    all: {
+      items: [],
+      cursor: null,
+      hasMore: true,
+      loading: false,
+      loadingMore: false,
+      initialLoaded: false,
+      filters: {},
+    },
+    mine: {
+      items: [],
+      cursor: null,
+      hasMore: true,
+      loading: false,
+      loadingMore: false,
+      initialLoaded: false,
+      filters: {},
+    },
+    requests: {
+      items: [],
+      cursor: null,
+      hasMore: true,
+      loading: false,
+      loadingMore: false,
+      initialLoaded: false,
+      filters: {},
+    },
+  });
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
-  async function loadHaves(groupId: string, reset = false) {
-    // if (!hasMore && !reset) return;
+  async function loadHaves(groupId: string, tab: TabKey, reset = false) {
+    const state = tabData[tab];
+
+    if (!state.hasMore && !reset) return;
+
+    setTabData((prev) => ({
+      ...prev,
+      [tab]: {
+        ...prev[tab],
+        loading: reset,
+        loadingMore: !reset,
+      },
+    }));
 
     try {
       setLoading(true);
 
-      const res = await fetchHaveItems(groupId);
+      const res = await fetchHaveItems(
+        groupId,
+        tab,
+        parsedUserInfo.accountName,
+        20,
+        state.cursor ? JSON.stringify(state.cursor) : undefined,
+        state.filters
+      );
 
-      setHaveItems((prev) => {
-        if (reset) return res.items;
+      setTabData((prev) => {
+        const map = new Map(
+          (reset ? [] : prev[tab].items).map((i) => [i.id, i])
+        );
+        res.items.forEach((i) => map.set(i.id, i));
 
-        const map = new Map(prev.map((i) => [i.id, i]));
-        res.forEach((i) => map.set(i.id, i));
-        return Array.from(map.values());
+        return {
+          ...prev,
+          [tab]: {
+            items: Array.from(map.values()),
+            cursor: res.nextCursor,
+            hasMore: Boolean(res.nextCursor),
+            loading: false,
+            loadingMore: false,
+            initialLoaded: true,
+          },
+        };
       });
-
-      //   setCursor(res.nextCursor);
-      //   setHasMore(Boolean(res.nextCursor));
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Unable to fetch have list!"
@@ -51,25 +105,46 @@ export function useHaves() {
     try {
       const res = await addHave(item);
       if (editItemId) {
-        deleteHaveItem(editItemId);
+        deleteHaveItem(editItemId, true);
       }
-      setHaveItems([
-        res,
-        ...haveItems.filter((item) => editItemId !== item.id),
-      ]);
-      editItemId
-        ? toast.success("Sucessfully editted item!")
-        : toast.success("Sucessfully added item!");
+      setTabData((prev) =>
+        updateTabs(
+          prev,
+          (items) => {
+            const filtered = editItemId
+              ? items.filter((i) => i.id !== editItemId)
+              : items;
+
+            return [res, ...filtered];
+          },
+          res.foundBy === parsedUserInfo.accountName ? ["all", "mine"] : ["all"]
+        )
+      );
+
+      toast.success(
+        editItemId ? "Successfully edited item!" : "Successfully added item!"
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Unable to add item!");
     }
   }
 
-  async function deleteHaveItem(itemId: string) {
+  async function deleteHaveItem(
+    itemId: string,
+    isEdittedItem: boolean = false
+  ) {
     try {
-      const res = await deleteHave(itemId);
-      setHaveItems((items) => items.filter((item) => item.id !== itemId));
-      toast.success("Item successfully deleted!");
+      await deleteHave(itemId);
+
+      setTabData((prev) =>
+        updateTabs(prev, (items) => items.filter((i) => i.id !== itemId), [
+          "all",
+          "mine",
+          "requests",
+        ])
+      );
+
+      !isEdittedItem && toast.success("Item successfully deleted!");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to delete item!"
@@ -79,24 +154,34 @@ export function useHaves() {
 
   async function toggleReservation(itemId: string) {
     try {
-      const selectedItem = haveItems.find((item) => item.id === itemId);
-      const res = await toggleReserved(
-        itemId,
-        !selectedItem?.isReserved,
-        parsedUserInfo.accountName
-      );
-      setHaveItems((items) =>
-        items.map((item) =>
-          item.id === itemId
-            ? {
-                ...item,
-                isReserved: !selectedItem?.isReserved,
-                reservedBy: parsedUserInfo.accountName,
-              }
-            : item
+      const item =
+        tabData.all.items.find((i) => i.id === itemId) ??
+        tabData.mine.items.find((i) => i.id === itemId);
+
+      if (!item) return;
+
+      const newReserved = !item.isReserved;
+
+      await toggleReserved(itemId, newReserved, parsedUserInfo.accountName);
+
+      setTabData((prev) =>
+        updateTabs(
+          prev,
+          (items) =>
+            items.map((i) =>
+              i.id === itemId
+                ? {
+                    ...i,
+                    isReserved: newReserved,
+                    reservedBy: newReserved ? parsedUserInfo.accountName : null,
+                  }
+                : i
+            ),
+          ["all", "mine", "requests"]
         )
       );
-      toast.success("Item Reserved!");
+
+      toast.success(newReserved ? "Item reserved!" : "Reservation removed!");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Unable to reserve item!"
@@ -105,12 +190,29 @@ export function useHaves() {
   }
 
   return {
-    haveItems,
     loading,
-    // hasMore,
     loadHaves,
     addHaveItem,
     deleteHaveItem,
     toggleReservation,
+    tabData,
+    setTabData,
   };
+}
+
+function updateTabs(
+  prev: Record<TabKey, TabState>,
+  updater: (items: HaveItem[]) => HaveItem[],
+  tabs: TabKey[]
+) {
+  const next = { ...prev };
+
+  tabs.forEach((tab) => {
+    next[tab] = {
+      ...prev[tab],
+      items: updater(prev[tab].items),
+    };
+  });
+
+  return next;
 }

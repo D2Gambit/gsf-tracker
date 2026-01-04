@@ -1,6 +1,15 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const NotFound: React.FC = () => {
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+  const accountName = parsedUserInfo?.accountName;
+  const navigate = useNavigate();
+
+  if (!accountName) {
+    navigate("/");
+  }
   return (
     <section className="relative flex py-10 min-h-screen items-center justify-center overflow-hidden bg-black">
       <div className="mx-auto relative z-30 w-full max-w-[600px] text-center px-4">

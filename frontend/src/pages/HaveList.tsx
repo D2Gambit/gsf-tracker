@@ -1,15 +1,6 @@
-import { useEffect, useState } from "react";
-import type { ParsedItem, TabTypes } from "../types/list";
-import {
-  Search,
-  Edit,
-  Trash2,
-  Plus,
-  Package,
-  Image,
-  FileText,
-  Filter,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import type { HaveFilters, TabKey } from "../types/list";
+import { Plus, Package } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import HaveItemForm from "../components/have-list/HaveItemForm";
@@ -19,12 +10,14 @@ import ItemModal from "../components/ItemModal";
 import ListStats from "../components/have-list/ListStats";
 import ListItem from "../components/have-list/ListItem";
 import type { HaveItem, ListStat } from "../types/list";
-import { getQualityColor } from "../utils/colors";
 import { useHaves } from "../hooks/useHaves";
 import ListFilter from "../components/have-list/ListFilter";
 import type { ModalContent } from "../types/modal";
 import { HoverPreview } from "../components/have-list/HoverPreview";
 import ItemListTabs from "../components/ItemListTabs";
+import { fetchHaveItemCounts } from "../api/haves.api";
+import { useNavigate } from "react-router-dom";
+import { useDebounce } from "../hooks/useDebounce";
 
 export default function HaveList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,53 +28,99 @@ export default function HaveList() {
   const [showReservedOnly, setShowReservedOnly] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<HaveItem | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [activeTab, setActiveTab] = useState<TabTypes>("all");
+  const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [counts, setCounts] = useState({
+    allCount: 0,
+    myItemsCount: 0,
+    requestsCount: 0,
+  });
 
   const { session } = useAuth();
   const {
-    haveItems,
     loading,
     loadHaves,
     addHaveItem,
     deleteHaveItem,
     toggleReservation,
+    tabData,
+    setTabData,
   } = useHaves();
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
   const accountName = parsedUserInfo?.accountName;
 
+  const navigate = useNavigate();
+
+  if (!accountName) {
+    navigate("/");
+  }
+
+  const currentTab = tabData[activeTab];
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
   const createListStats = (): ListStat[] => {
     const listStats: ListStat[] = [];
     listStats.push({
       statTitle: "Total Items",
-      statValue: String(haveItems.length),
+      statValue: String(currentTab.items.length),
       statColor: "text-gray-900",
     });
     listStats.push({
       statTitle: "Reservable",
-      statValue: String(haveItems.filter((i) => !i.isReserved).length),
+      statValue: String(currentTab.items.filter((i) => !i.isReserved).length),
       statColor: "text-green-600",
     });
     listStats.push({
       statTitle: "Reserved",
-      statValue: String(haveItems.filter((i) => i.isReserved).length),
+      statValue: String(currentTab.items.filter((i) => i.isReserved).length),
       statColor: "text-red-600",
     });
     listStats.push({
       statTitle: "My Posts",
       statValue: String(
-        haveItems.filter((i) => i.foundBy === accountName).length
+        currentTab.items.filter((i) => i.foundBy === accountName).length
       ),
       statColor: "text-blue-800",
     });
     return listStats;
   };
 
+  function updateFilters(filters: HaveFilters) {
+    setTabData((prev) => ({
+      ...prev,
+      [activeTab]: {
+        ...prev[activeTab],
+        filters,
+        items: [],
+        cursor: null,
+        hasMore: true,
+        initialLoaded: false,
+      },
+    }));
+  }
+
+  useEffect(() => {
+    const prevFilters = tabData[activeTab].filters;
+    const derivedFilters: HaveFilters = {
+      search: debouncedSearch.trim() || undefined,
+      qualities: selectedQualities.length ? selectedQualities : undefined,
+      reservable: showReservedOnly ? true : undefined,
+    };
+
+    if (JSON.stringify(prevFilters) !== JSON.stringify(derivedFilters)) {
+      updateFilters(derivedFilters);
+    }
+  }, [debouncedSearch, activeTab, selectedQualities, showReservedOnly]);
+
   useEffect(() => {
     if (!session?.gsfGroupId) return;
-    loadHaves(session?.gsfGroupId);
-  }, [session?.gsfGroupId]);
+
+    if (!currentTab.initialLoaded) {
+      loadHaves(session.gsfGroupId, activeTab, true);
+    }
+  }, [session?.gsfGroupId, activeTab, currentTab.initialLoaded]);
 
   useEffect(() => {
     setSearchTerm("");
@@ -89,11 +128,41 @@ export default function HaveList() {
     setShowReservedOnly(false);
   }, [activeTab]);
 
-  const filteredItems = haveItems.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    if (!session?.gsfGroupId || !accountName) return;
 
+    fetchHaveItemCounts(session.gsfGroupId, accountName)
+      .then(setCounts)
+      .catch((err) =>
+        toast.error(
+          err instanceof Error ? err.message : "Failed to load counts"
+        )
+      );
+  }, [session?.gsfGroupId, accountName]);
+
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el || !session?.gsfGroupId || !currentTab.initialLoaded) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !currentTab.loading && currentTab.hasMore) {
+          loadHaves(session.gsfGroupId, activeTab);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "200px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, [session?.gsfGroupId, activeTab, currentTab.loading, currentTab.hasMore]);
+
+  const filteredItems = currentTab.items.filter((item) => {
     const matchesQuality =
       selectedQualities.length === 0 ||
       selectedQualities.includes(item.quality);
@@ -110,11 +179,11 @@ export default function HaveList() {
         ? item.foundBy === accountName && item.isReserved
         : true;
 
-    return matchesSearch && matchesQuality && matchesReserved && matchesTab;
+    return matchesQuality && matchesReserved && matchesTab;
   });
 
   const editItem = (id: string) => {
-    setCurrentItem(haveItems.find((item) => item.id === id) || {});
+    setCurrentItem(currentTab.items.find((item) => item.id === id) || {});
     setIsModalOpen(true);
   };
 
@@ -144,9 +213,11 @@ export default function HaveList() {
           </div>
 
           <ItemListTabs
-            itemList={haveItems}
+            itemList={currentTab.items}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            counts={counts}
+            isHaveList={true}
           />
 
           <ListFilter
@@ -160,8 +231,7 @@ export default function HaveList() {
 
           {/* Items List */}
           <div className="bg-zinc-300 rounded-lg border border-gray-200 overflow-hidden">
-            {loading && <p className="text-zinc-400">Loading have items...</p>}
-            {filteredItems.length === 0 ? (
+            {currentTab.initialLoaded && filteredItems.length === 0 ? (
               <div className="text-center py-12">
                 <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">
@@ -210,6 +280,14 @@ export default function HaveList() {
               addHaveItem={addHaveItem}
             />
           )}
+
+          {currentTab.loadingMore && (
+            <p className="text-center text-zinc-500 mt-4">
+              Loading more items...
+            </p>
+          )}
+
+          {currentTab.hasMore && <div ref={loadMoreRef} className="h-1" />}
 
           <ListStats listStats={createListStats()} />
         </section>

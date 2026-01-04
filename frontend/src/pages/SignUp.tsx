@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -106,6 +106,11 @@ export default function SignUp() {
         method: "POST",
         body: formData,
       });
+
+      if (res.status === 409) {
+        toast.error("GSF Group member already exists! Please try again.");
+        return;
+      }
 
       if (!res.ok) {
         throw new Error("Request failed");

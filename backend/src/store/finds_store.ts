@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm/sql/expressions/conditions";
-import { desc, lt, and, or, sql, notInArray } from "drizzle-orm";
+import { desc, lt, and, or, sql } from "drizzle-orm";
 import { db } from "../config/db";
 import { findReactions, finds } from "../config/schema";
 
