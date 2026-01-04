@@ -4,7 +4,11 @@ type ItemListTabsProps = {
   itemList: NeedItem[] | HaveItem[];
   activeTab: TabKey;
   setActiveTab: React.Dispatch<React.SetStateAction<TabKey>>;
-  counts: { allCount: number; myItemsCount: number; requestsCount: number };
+  counts: {
+    allCount: number;
+    myItemsCount: number;
+    requestsCount: number;
+  } | null;
 };
 
 export default function ItemListTabs({

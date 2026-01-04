@@ -155,6 +155,7 @@ export default function NeedList() {
             itemList={needItems}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            counts={null}
           />
 
           {/* Search */}
