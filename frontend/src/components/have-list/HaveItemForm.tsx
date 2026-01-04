@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../AuthContext";
-import { parse } from "zod/v4/core";
 import type { AddHaveItemRequest } from "../../types/list";
 
 type AddHaveItemForm = {

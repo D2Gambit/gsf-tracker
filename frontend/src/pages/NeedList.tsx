@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   Edit,
@@ -12,8 +12,9 @@ import Footer from "../components/Footer";
 import AddNeedItemForm from "../components/AddNeedItemForm";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
-import type { NeedItem, TabTypes } from "../types/list";
+import type { NeedItem, TabKey } from "../types/list";
 import ItemListTabs from "../components/ItemListTabs";
+import { useNavigate } from "react-router-dom";
 
 export default function NeedList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,10 +27,16 @@ export default function NeedList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [needItems, setNeedItems] = useState<NeedItem[]>([]);
   const [currentItem, setCurrentItem] = useState<Partial<NeedItem>>({});
-  const [activeTab, setActiveTab] = useState<TabTypes>("all");
+  const [activeTab, setActiveTab] = useState<TabKey>("all");
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+  const accountName = parsedUserInfo?.accountName;
+  const navigate = useNavigate();
+
+  if (!accountName) {
+    navigate("/");
+  }
 
   const { session } = useAuth();
 
@@ -53,8 +60,7 @@ export default function NeedList() {
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesTab =
-      activeTab === "all" || item.requestedBy === parsedUserInfo.accountName;
+    const matchesTab = activeTab === "all" || item.requestedBy === accountName;
     return matchesSearch && matchesTab;
   });
 
@@ -149,6 +155,7 @@ export default function NeedList() {
             itemList={needItems}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            counts={null}
           />
 
           {/* Search */}
@@ -230,7 +237,7 @@ export default function NeedList() {
                         </div>
                       </div>
                       <div className="flex flex-col items-center space-x-4">
-                        {parsedUserInfo.accountName === item.requestedBy && (
+                        {accountName === item.requestedBy && (
                           <div className="flex items-center space-x-2 ml-4">
                             <button
                               onClick={() => toggleActive(item.id)}

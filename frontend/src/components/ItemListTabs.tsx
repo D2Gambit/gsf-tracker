@@ -1,21 +1,27 @@
-import type { HaveItem, NeedItem, TabTypes } from "../types/list";
+import type { HaveItem, NeedItem, TabKey } from "../types/list";
 
 type ItemListTabsProps = {
   itemList: NeedItem[] | HaveItem[];
-  activeTab: TabTypes;
-  setActiveTab: React.Dispatch<React.SetStateAction<TabTypes>>;
+  activeTab: TabKey;
+  setActiveTab: React.Dispatch<React.SetStateAction<TabKey>>;
+  isHaveList: boolean;
+  counts: {
+    allCount: number;
+    myItemsCount: number;
+    requestsCount: number;
+  } | null;
 };
 
 export default function ItemListTabs({
   itemList,
   activeTab,
   setActiveTab,
+  isHaveList,
+  counts,
 }: ItemListTabsProps) {
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
   const accountName = parsedUserInfo?.accountName;
-
-  const isHaveList = itemList.length > 0 && "foundBy" in itemList[0];
 
   return (
     <div className="mt-4 mb-4 border-b border-zinc-600">
@@ -30,7 +36,7 @@ export default function ItemListTabs({
         >
           All Items
           <span className="ml-2 text-xs text-zinc-400">
-            ({itemList.length})
+            ({counts ? counts.allCount : itemList.length})
           </span>
         </button>
 
@@ -45,15 +51,13 @@ export default function ItemListTabs({
           My Listed Items
           <span className="ml-2 text-xs text-zinc-400">
             (
-            {
-              itemList.filter((i) => {
-                if ("foundBy" in i) {
-                  return (i as HaveItem).foundBy === accountName;
-                } else if ("requestedBy" in i) {
-                  return (i as NeedItem).requestedBy === accountName;
-                }
-              }).length
-            }
+            {counts
+              ? counts.myItemsCount
+              : itemList.filter((i) => {
+                  if ("requestedBy" in i) {
+                    return (i as NeedItem).requestedBy === accountName;
+                  }
+                }).length}
             )
           </span>
         </button>
@@ -70,14 +74,14 @@ export default function ItemListTabs({
             Requests
             <span className="ml-2 text-xs text-zinc-400">
               (
-              {
-                itemList.filter((i) => {
-                  return (
-                    (i as HaveItem).foundBy === accountName &&
-                    (i as HaveItem).isReserved
-                  );
-                }).length
-              }
+              {counts
+                ? counts.requestsCount
+                : itemList.filter((i) => {
+                    return (
+                      (i as HaveItem).foundBy === accountName &&
+                      (i as HaveItem).isReserved
+                    );
+                  }).length}
               )
             </span>
           </button>

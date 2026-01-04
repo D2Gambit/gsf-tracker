@@ -2,14 +2,9 @@ import { useState } from "react";
 import type { HaveItem } from "../../types/list";
 import type { ModalContent } from "../../types/modal";
 import { getQualityColor } from "../../utils/colors";
-import {
-  hasParsedDescription,
-  normalizeDescriptionForModal,
-  truncate,
-} from "../../utils/strings";
-import { Edit, Trash2, Image, FileText } from "lucide-react";
+import { normalizeDescriptionForModal, truncate } from "../../utils/strings";
+import { Edit, Trash2, Image } from "lucide-react";
 import DeleteModal from "../DeleteModal";
-import { set } from "react-hook-form";
 
 type ListItemProps = {
   item: HaveItem;
