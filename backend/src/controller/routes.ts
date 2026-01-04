@@ -83,7 +83,7 @@ api.post("/create-reaction", async (c) => {
   try {
     const result = await createFindReaction({
       gsfGroupId: body.gsfGroupId as string,
-      findId: body.findId as string,
+      findId: parseInt(body.findId as string),
       accountName: body.accountName as string,
       emoji: body.emoji as string,
       createdAt: new Date(),

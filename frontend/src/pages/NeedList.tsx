@@ -12,16 +12,8 @@ import Footer from "../components/Footer";
 import AddNeedItemForm from "../components/AddNeedItemForm";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
-
-interface NeedItem {
-  id: string;
-  name: string;
-  description: string;
-  priority: "High" | "Medium" | "Low";
-  requestedBy: string;
-  isActive: boolean;
-  createdAt: string;
-}
+import type { NeedItem, TabTypes } from "../types/list";
+import ItemListTabs from "../components/ItemListTabs";
 
 export default function NeedList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,6 +26,7 @@ export default function NeedList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [needItems, setNeedItems] = useState<NeedItem[]>([]);
   const [currentItem, setCurrentItem] = useState<Partial<NeedItem>>({});
+  const [activeTab, setActiveTab] = useState<TabTypes>("all");
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
@@ -55,11 +48,15 @@ export default function NeedList() {
     fetchNeedItems();
   }, []);
 
-  const filteredItems = needItems.filter(
-    (item) =>
+  const filteredItems = needItems.filter((item) => {
+    const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesTab =
+      activeTab === "all" || item.requestedBy === parsedUserInfo.accountName;
+    return matchesSearch && matchesTab;
+  });
 
   const toggleActive = async (id: string) => {
     try {
@@ -147,6 +144,12 @@ export default function NeedList() {
               manage priorities.
             </p>
           </div>
+
+          <ItemListTabs
+            itemList={needItems}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
 
           {/* Search */}
           <div className="mb-6">

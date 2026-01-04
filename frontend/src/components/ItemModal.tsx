@@ -1,5 +1,5 @@
-import ItemDescriptionRenderer from "./ItemDescriptionRenderer";
-import type { ParsedItem } from "./ItemDescriptionRenderer";
+import ItemDescriptionRenderer from "../components/have-list/ItemDescriptionRenderer";
+import type { ParsedItem } from "../types/list";
 
 interface Props {
   content:
@@ -20,7 +20,7 @@ export default function ItemModal({ content, onClose }: Props) {
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div className="relative md:max-w-[500px] w-[600px] max-h-[600px] z-10 bg-black/85 rounded-lg overflow-hidden">
         <div className="p-2">
-          <div className="p-2  border border-yellow-900/70 shadow-[inset_0_0_0_1px_black,0_0_20px_rgba(0,0,0,0.9)]">
+          <div className="p-2 border border-yellow-900/70 shadow-[inset_0_0_0_1px_black,0_0_20px_rgba(0,0,0,0.9)]">
             {content.type === "image" ? (
               <img
                 src={content.imageUrl}

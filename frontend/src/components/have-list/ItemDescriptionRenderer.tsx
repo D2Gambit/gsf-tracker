@@ -1,7 +1,4 @@
-export type ParsedItem = {
-  name?: string;
-  stats: { name: string; value?: string | number | any }[];
-};
+import type { ParsedItem } from "../../types/list";
 
 export type ItemLineType =
   | "header"
@@ -77,14 +74,17 @@ export default function ItemDescriptionRenderer({
           return undefined;
         }
         const valStr = safeValueToString(stat.value);
-        const line = [valStr, name].filter(Boolean).join(" ");
+        let line = [valStr, name].filter(Boolean).join(" ");
+        if (stat.corrupted) {
+          line += "*";
+        }
         return line || undefined;
       })
       .filter(Boolean) as string[];
 
     // append single "Corrupted Item" line at the end if any corrupt lines were detected
     if (foundCorrupt) {
-      parts.push("Corrupted Item");
+      parts.unshift("Corrupted");
     }
   } else if (Array.isArray(description)) {
     parts = description;
@@ -143,18 +143,20 @@ export default function ItemDescriptionRenderer({
           Found by: {foundBy}
         </div>
       )}
-      {parts.map((part, i) => (
-        <div
-          className={`text-center mb-0.5 drop-shadow-[1px_1px_1px_black] ${
-            part === "Corrupted Item"
-              ? "text-red-400 font-semibold"
-              : "text-blue-400"
-          }`}
-          key={i}
-        >
-          {part}
-        </div>
-      ))}
+      {parts.map((part, i) => {
+        let isCorrupted = false;
+        if (part === "Corrupted" || part.includes("*")) isCorrupted = true;
+        return (
+          <div
+            className={`text-center mb-0.5 drop-shadow-[1px_1px_1px_black] ${
+              isCorrupted ? "text-red-400 font-semibold" : "text-blue-400"
+            }`}
+            key={i}
+          >
+            {part}
+          </div>
+        );
+      })}
     </div>
   );
 }

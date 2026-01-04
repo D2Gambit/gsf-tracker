@@ -86,7 +86,7 @@ export const getLatestFinds = async (
 
 export const createFindReaction = async (data: {
   gsfGroupId: string;
-  findId: string;
+  findId: number;
   accountName: string;
   emoji: string;
   createdAt: Date;
