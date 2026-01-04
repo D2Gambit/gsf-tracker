@@ -57,7 +57,7 @@ export default function SignUp() {
         throw new Error("Request failed");
       }
 
-      sessionStorage.setItem("gsfUserInfo", "");
+      localStorage.removeItem("gsfUserInfo");
       sessionStorage.setItem("groupOrganizer", true.toString());
 
       login(
