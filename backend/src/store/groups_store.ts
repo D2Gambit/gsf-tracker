@@ -9,14 +9,25 @@ export const createGroup = async (data: {
   createdAt: Date;
 }) => {
   const passwordHash = await bcrypt.hash(data.password, 12);
-  return db
-    .insert(gsfGroups)
-    .values({
-      gsfGroupId: data.gsfGroupId,
-      passwordHash,
-      createdAt: data.createdAt,
-    })
-    .returning();
+  try {
+    const result = await db
+      .insert(gsfGroups)
+      .values({
+        gsfGroupId: data.gsfGroupId,
+        passwordHash,
+        createdAt: data.createdAt,
+      })
+      .returning();
+    return result;
+  } catch (err: any) {
+    // Check for Postgres unique violation
+    if (err.cause.code === "23505") {
+      // 23505 = unique_violation
+      // Bubble up a custom error
+      throw new Error("DUPLICATE_REACTION");
+    }
+    throw err; // rethrow other errors
+  }
 };
 
 export const validateGroupLogin = async (

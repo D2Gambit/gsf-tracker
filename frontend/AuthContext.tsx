@@ -47,6 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     const data = await res.json();
+    console.log("Data:", data)
     const sessionData = {
       id: data.id,
       gsfGroupId: data.gsfGroupId,

@@ -6,38 +6,81 @@ import {
   toggleReserved,
 } from "../api/haves.api";
 import { toast } from "react-toastify";
-import type { AddHaveItemRequest, HaveItem } from "../types/list";
+import type {
+  AddHaveItemRequest,
+  HaveItem,
+  TabKey,
+  TabState,
+} from "../types/list";
 
 export function useHaves() {
   const [haveItems, setHaveItems] = useState<HaveItem[]>([]);
   const [loading, setLoading] = useState(false);
-  //   const [cursor, setCursor] = useState<{
-  //     createdAt: string;
-  //     id: string;
-  //   } | null>(null);
-  //   const [hasMore, setHasMore] = useState(true);
+  const [tabData, setTabData] = useState<Record<TabKey, TabState>>({
+    all: {
+      items: [],
+      cursor: null,
+      hasMore: true,
+      loading: false,
+      initialLoaded: false,
+    },
+    mine: {
+      items: [],
+      cursor: null,
+      hasMore: true,
+      loading: false,
+      initialLoaded: false,
+    },
+    requests: {
+      items: [],
+      cursor: null,
+      hasMore: true,
+      loading: false,
+      initialLoaded: false,
+    },
+  });
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
-  async function loadHaves(groupId: string, reset = false) {
-    // if (!hasMore && !reset) return;
+  async function loadHaves(groupId: string, tab: TabKey, reset = false) {
+    setTabData((prev) => ({
+      ...prev,
+      [tab]: { ...prev[tab], loading: true },
+    }));
+
+    const state = tabData[tab];
+
+    if (!state.hasMore && !reset) return;
 
     try {
       setLoading(true);
 
-      const res = await fetchHaveItems(groupId);
+      const res = await fetchHaveItems(
+        groupId,
+        tab,
+        parsedUserInfo.accountName,
+        20,
+        reset ? undefined : JSON.stringify(state.cursor)
+      );
 
-      setHaveItems((prev) => {
-        if (reset) return res.items;
+      setTabData((prev) => {
+        const map = new Map(
+          (reset ? [] : prev[tab].items).map((i) => [i.id, i])
+        );
+        res.items.forEach((i) => map.set(i.id, i));
 
-        const map = new Map(prev.map((i) => [i.id, i]));
-        res.forEach((i) => map.set(i.id, i));
-        return Array.from(map.values());
+        return {
+          ...prev,
+          [tab]: {
+            items: Array.from(map.values()),
+            cursor: res.nextCursor,
+            hasMore: Boolean(res.nextCursor),
+            loading: false,
+            initialLoaded: true,
+          },
+        };
       });
-
-      //   setCursor(res.nextCursor);
-      //   setHasMore(Boolean(res.nextCursor));
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Unable to fetch have list!"
@@ -107,10 +150,10 @@ export function useHaves() {
   return {
     haveItems,
     loading,
-    // hasMore,
     loadHaves,
     addHaveItem,
     deleteHaveItem,
     toggleReservation,
+    tabData,
   };
 }
