@@ -13,14 +13,8 @@ import NeedList from "./src/pages/NeedList";
 import HaveList from "./src/pages/HaveList";
 import NotFound from "./src/pages/NotFound";
 import Login from "./src/pages/Login";
-import { useAuth } from "./AuthContext";
 
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuth();
-  const userInfo = localStorage.getItem("gsfUserInfo");
-  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
-  const accountName = parsedUserInfo?.accountName;
-
   return (
     <Theme appearance="inherit" radius="large" scaling="100%">
       <Router>
