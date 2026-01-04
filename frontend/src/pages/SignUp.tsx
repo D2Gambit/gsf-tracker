@@ -107,6 +107,11 @@ export default function SignUp() {
         body: formData,
       });
 
+      if (res.status === 409) {
+        toast.error("GSF Group member already exists! Please try again.");
+        return;
+      }
+
       if (!res.ok) {
         throw new Error("Request failed");
       }

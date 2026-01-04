@@ -7,7 +7,13 @@ import { useAuth } from "../../AuthContext";
 
 const createGSFSchema = z
   .object({
-    groupName: z.string().min(6, "Group name must be at least 6 characters"),
+    groupName: z
+      .string()
+      .min(6, "Group name must be at least 6 characters")
+      .regex(
+        /^[a-zA-Z0-9]+$/,
+        "Group Name must contain only alphanumeric characters and no spaces"
+      ),
     groupPassword: z.string().min(6, "Password must be at least 6 characters"),
     confirmGroupPassword: z
       .string()
@@ -42,10 +48,16 @@ export default function SignUp() {
         body: formData,
       });
 
+      if (res.status === 409) {
+        toast.error("GSF Group name already exists!");
+        return;
+      }
+
       if (!res.ok) {
         throw new Error("Request failed");
       }
 
+      sessionStorage.setItem("gsfUserInfo", "");
       sessionStorage.setItem("groupOrganizer", true.toString());
 
       login(

@@ -221,13 +221,24 @@ api.post("/reserve-have-item", async (c) => {
 
 api.post("/create-group", async (c) => {
   const body = await c.req.parseBody();
-  const result = await createGroup({
-    gsfGroupId: body.gsfGroupId as string,
-    password: body.password as string,
-    createdAt: new Date(),
-  });
+  try {
+    const result = await createGroup({
+      gsfGroupId: body.gsfGroupId as string,
+      password: body.password as string,
+      createdAt: new Date(),
+    });
 
-  return c.json(result[0]);
+    return c.json(result[0]);
+  } catch (err: any) {
+    if (err.message === "DUPLICATE_REACTION") {
+      return c.json(
+        { error: "GSF Group already exists! Please try again." },
+        409
+      );
+    }
+    console.error(err);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 api.post("/login", async (c) => {
@@ -242,20 +253,31 @@ api.post("/login", async (c) => {
 
 api.post("/create-member", async (c) => {
   const body = await c.req.parseBody();
-  const result = await createMember({
-    gsfGroupId: body.gsfGroupId as string,
-    accountName: body.accountName as string,
-    characterName: body.characterName as string,
-    role: body.role as string,
-    hasPlayedGsf: (body.hasPlayedGsf as string) === "true",
-    createdAt: new Date(),
-    preferredTimezone: body.preferredTimezone as string,
-    preferredClass: body.preferredClass as string,
-    preferredSecondaryClass: body.preferredSecondaryClass as string,
-    discordName: body.discordName as string,
-  });
+  try {
+    const result = await createMember({
+      gsfGroupId: body.gsfGroupId as string,
+      accountName: body.accountName as string,
+      characterName: body.characterName as string,
+      role: body.role as string,
+      hasPlayedGsf: (body.hasPlayedGsf as string) === "true",
+      createdAt: new Date(),
+      preferredTimezone: body.preferredTimezone as string,
+      preferredClass: body.preferredClass as string,
+      preferredSecondaryClass: body.preferredSecondaryClass as string,
+      discordName: body.discordName as string,
+    });
 
-  return c.json(result[0]);
+    return c.json(result[0]);
+  } catch (err: any) {
+    if (err.message === "DUPLICATE_REACTION") {
+      return c.json(
+        { error: "GSF member already exists! Please try again." },
+        409
+      );
+    }
+    console.error(err);
+    return c.json({ error: "Internal server error" }, 500);
+  }
 });
 
 api.get("/members/:gsfGroupId", async (c) => {

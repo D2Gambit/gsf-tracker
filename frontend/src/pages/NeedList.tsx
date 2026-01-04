@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
 import type { NeedItem, TabKey } from "../types/list";
 import ItemListTabs from "../components/ItemListTabs";
+import { useNavigate } from "react-router-dom";
 
 export default function NeedList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,6 +31,12 @@ export default function NeedList() {
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+  const accountName = parsedUserInfo?.accountName;
+  const navigate = useNavigate();
+
+  if (!accountName) {
+    navigate("/");
+  }
 
   const { session } = useAuth();
 
@@ -53,8 +60,7 @@ export default function NeedList() {
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesTab =
-      activeTab === "all" || item.requestedBy === parsedUserInfo.accountName;
+    const matchesTab = activeTab === "all" || item.requestedBy === accountName;
     return matchesSearch && matchesTab;
   });
 
@@ -230,7 +236,7 @@ export default function NeedList() {
                         </div>
                       </div>
                       <div className="flex flex-col items-center space-x-4">
-                        {parsedUserInfo.accountName === item.requestedBy && (
+                        {accountName === item.requestedBy && (
                           <div className="flex items-center space-x-2 ml-4">
                             <button
                               onClick={() => toggleActive(item.id)}

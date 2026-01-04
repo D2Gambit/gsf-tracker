@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Home from "./src/pages/Home";
+import ProtectedRoute from "./ProtectedRoute";
 import LootShowcase from "./src/pages/LootShowcase";
 import SignUp from "./src/pages/SignUp";
 import NeedList from "./src/pages/NeedList";
@@ -16,6 +17,9 @@ import { useAuth } from "./AuthContext";
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+  const accountName = parsedUserInfo?.accountName;
 
   return (
     <Theme appearance="inherit" radius="large" scaling="100%">
@@ -23,17 +27,46 @@ const App: React.FC = () => {
         <main className="min-h-screen font-inter">
           <Routes>
             <Route path="/" element={<Home />} />
-            {isAuthenticated && <Route path="/login" element={<Login />} />}
-            {isAuthenticated && <Route path="/signup" element={<SignUp />} />}
-            {isAuthenticated && (
-              <Route path="/need-list" element={<NeedList />} />
-            )}
-            {isAuthenticated && (
-              <Route path="/have-list" element={<HaveList />} />
-            )}
-            {isAuthenticated && (
-              <Route path="/loot-showcase" element={<LootShowcase />} />
-            )}
+            <Route
+              path="/login"
+              element={
+                <ProtectedRoute>
+                  <Login />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <ProtectedRoute>
+                  <SignUp />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/need-list"
+              element={
+                <ProtectedRoute>
+                  <NeedList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/have-list"
+              element={
+                <ProtectedRoute>
+                  <HaveList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/loot-showcase"
+              element={
+                <ProtectedRoute>
+                  <LootShowcase />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ToastContainer

@@ -16,6 +16,7 @@ import type { ModalContent } from "../types/modal";
 import { HoverPreview } from "../components/have-list/HoverPreview";
 import ItemListTabs from "../components/ItemListTabs";
 import { fetchHaveItemCounts } from "../api/haves.api";
+import { useNavigate } from "react-router-dom";
 
 export default function HaveList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,6 +49,12 @@ export default function HaveList() {
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
   const accountName = parsedUserInfo?.accountName;
+
+  const navigate = useNavigate();
+
+  if (!accountName) {
+    navigate("/");
+  }
 
   const currentTab = tabData[activeTab];
 
