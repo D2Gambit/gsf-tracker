@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import { db } from "../config/db";
-import { haveItems } from "../config/schema";
+import { db } from "../config/db.js";
+import { haveItems } from "../config/schema.js";
 import { and, eq, lt } from "drizzle-orm";
 
 export function startExpireReservedItemsJob() {

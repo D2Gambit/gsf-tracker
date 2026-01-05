@@ -1,6 +1,6 @@
-import { db } from "../config/db";
+import { db } from "../config/db.js";
 import { eq } from "drizzle-orm/sql/expressions/conditions";
-import { gsfMembers } from "../config/schema";
+import { gsfMembers } from "../config/schema.js";
 
 export const createMember = async (data: {
   gsfGroupId: string;

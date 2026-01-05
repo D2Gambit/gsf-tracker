@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { api } from "./controller/routes";
+import { api } from "./controller/routes.js";
 import { serveStatic } from "@hono/node-server/serve-static";
 import path from "node:path";
-import { startExpireReservedItemsJob } from "./cron/expireReservedItems";
+import { startExpireReservedItemsJob } from "./cron/expireReservedItems.js";
+import { fileURLToPath } from "url";
 
 const app = new Hono();
 
@@ -13,10 +14,15 @@ app.route("/api", api);
 startExpireReservedItemsJob();
 
 // Serve frontend build
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
+
 app.use(
   "*",
   serveStatic({
-    root: path.resolve("../frontend/dist"),
+    root: frontendDistPath,
   })
 );
 

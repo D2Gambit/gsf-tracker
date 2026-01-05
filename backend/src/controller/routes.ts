@@ -5,28 +5,28 @@ import {
   getGsfReactions,
   getHotFinds,
   getLatestFinds,
-} from "../store/finds_store";
-import { uploadLootImage } from "../config/db";
+} from "../store/finds_store.js";
+import { uploadLootImage } from "../config/db.js";
 import {
   createNeedItem,
   deleteNeedItem,
   getNeedItems,
   updateNeedItemActiveFlag,
-} from "../store/needs_store";
+} from "../store/needs_store.js";
 import {
   createHaveItem,
   deleteHaveItem,
   getHaveItemCounts,
   getHaveItems,
   updateHaveItemReservedFlag,
-} from "../store/haves_store";
-import { createGroup, validateGroupLogin } from "../store/groups_store";
+} from "../store/haves_store.js";
+import { createGroup, validateGroupLogin } from "../store/groups_store.js";
 import {
   createMember,
   deleteMember,
   getMemberByAccountName,
   getMembersByGroup,
-} from "../store/members_store";
+} from "../store/members_store.js";
 
 export const api = new Hono();
 
