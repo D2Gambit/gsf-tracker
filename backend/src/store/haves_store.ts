@@ -8,8 +8,8 @@ import {
   ne,
 } from "drizzle-orm/sql/expressions/conditions";
 import { desc, sql } from "drizzle-orm";
-import { db } from "../config/db";
-import { haveItems } from "../config/schema";
+import { db } from "../config/db.js";
+import { haveItems } from "../config/schema.js";
 
 export const createHaveItem = async (data: {
   gsfGroupId: string;

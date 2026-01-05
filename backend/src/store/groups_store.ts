@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
-import { db } from "../config/db";
+import { db } from "../config/db.js";
 import { eq } from "drizzle-orm/sql/expressions/conditions";
-import { gsfGroups } from "../config/schema";
+import { gsfGroups } from "../config/schema.js";
 
 export const createGroup = async (data: {
   gsfGroupId: string;

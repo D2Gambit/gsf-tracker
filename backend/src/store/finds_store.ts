@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm/sql/expressions/conditions";
 import { desc, lt, and, or, sql } from "drizzle-orm";
-import { db } from "../config/db";
-import { findReactions, finds } from "../config/schema";
+import { db } from "../config/db.js";
+import { findReactions, finds } from "../config/schema.js";
 
 export const createFind = async (data: {
   gsfGroupId: string;

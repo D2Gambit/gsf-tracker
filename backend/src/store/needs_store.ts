@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm/sql/expressions/conditions";
 import { desc } from "drizzle-orm";
-import { db } from "../config/db";
-import { needItems } from "../config/schema";
+import { db } from "../config/db.js";
+import { needItems } from "../config/schema.js";
 
 export const createNeedItem = async (data: {
   gsfGroupId: string;
