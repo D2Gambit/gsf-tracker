@@ -15,6 +15,7 @@ import { useAuth } from "../../AuthContext";
 import type { NeedItem, TabKey } from "../types/list";
 import ItemListTabs from "../components/ItemListTabs";
 import { useNavigate } from "react-router-dom";
+import DeleteModal from "../components/DeleteModal";
 
 export default function NeedList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,6 +29,8 @@ export default function NeedList() {
   const [needItems, setNeedItems] = useState<NeedItem[]>([]);
   const [currentItem, setCurrentItem] = useState<Partial<NeedItem>>({});
   const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [needItemToDelete, setNeedItemToDelete] = useState("");
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
@@ -155,6 +158,7 @@ export default function NeedList() {
             itemList={needItems}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            isHaveList={false}
             counts={null}
           />
 
@@ -266,7 +270,11 @@ export default function NeedList() {
                               <Edit className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => deleteItem(item.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNeedItemToDelete(item.id);
+                                setShowDeleteModal(true);
+                              }}
                               className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete item"
                             >
@@ -301,6 +309,30 @@ export default function NeedList() {
               editItem={currentItem}
             />
           )}
+
+          {/* Render the Confirmation Component */}
+          <DeleteModal
+            isOpen={showDeleteModal}
+            onClose={() => {
+              setShowDeleteModal(false);
+              setNeedItemToDelete("");
+            }}
+            onConfirm={() => deleteItem(needItemToDelete)}
+            title="Remove Item"
+            message={
+              <span>
+                Delete{" "}
+                <span className="font-extrabold">
+                  {needItems.filter((p) => p.id === needItemToDelete).length >
+                    0 &&
+                    needItems.filter((p) => p.id === needItemToDelete)[0].name}
+                  ?
+                </span>{" "}
+                This action cannot be undone.
+              </span>
+            }
+            confirmLabel="Delete"
+          />
 
           {/* Stats */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">

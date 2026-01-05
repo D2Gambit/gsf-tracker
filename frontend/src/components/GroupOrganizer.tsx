@@ -3,6 +3,7 @@ import { Users, UserMinus } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
 import NewUserModal from "./NewUserModal";
+import DeleteModal from "./DeleteModal";
 
 interface Player {
   id: string;
@@ -22,6 +23,8 @@ const GroupOrganizer = () => {
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [playerIdToDelete, setPlayerIdToDelete] = useState("");
 
   if (!localStorage.getItem("gsfUserInfo") && !isModalOpen) {
     setIsModalOpen(true);
@@ -148,9 +151,14 @@ const GroupOrganizer = () => {
                       ? JSON.parse(userInfo)
                       : null;
                     return parsedUserInfo &&
-                      parsedUserInfo.role === "organizer" ? (
+                      parsedUserInfo.role === "organizer" &&
+                      player.role !== "organizer" ? (
                       <button
-                        onClick={() => removePlayer(player.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPlayerIdToDelete(player.id);
+                          setShowDeleteModal(true);
+                        }}
                         className="flex items-center space-x-2 px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                         title="Remove player from group"
                       >
@@ -177,6 +185,28 @@ const GroupOrganizer = () => {
           gsfGroupId={session.gsfGroupId}
         />
       )}
+      {/* Render the Confirmation Component */}
+      <DeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setPlayerIdToDelete("");
+        }}
+        onConfirm={() => removePlayer(playerIdToDelete)}
+        title="Remove Player"
+        message={
+          <span>
+            Delete{" "}
+            <span className="font-extrabold">
+              {players.filter((p) => p.id === playerIdToDelete).length > 0 &&
+                players.filter((p) => p.id === playerIdToDelete)[0].accountName}
+              ?
+            </span>{" "}
+            This action cannot be undone.
+          </span>
+        }
+        confirmLabel="Delete"
+      />
     </section>
   );
 };
