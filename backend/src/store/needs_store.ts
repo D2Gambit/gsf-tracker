@@ -29,7 +29,7 @@ export const getNeedItems = async (gsfGroupId: string) => {
     .select()
     .from(needItems)
     .where(eq(needItems.gsfGroupId, gsfGroupId))
-    .orderBy(desc(needItems.createdAt), needItems.isActive);
+    .orderBy(desc(needItems.isActive), desc(needItems.createdAt));
 };
 
 export const deleteNeedItem = async (id: string) => {
