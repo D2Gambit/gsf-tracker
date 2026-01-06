@@ -63,8 +63,9 @@ export default function NewUserModal({
 
         <p className="block mb-2 text-sm font-medium text-zinc-100">
           <br />
-          If you're already registered, but returning from another device,
-          please select your account name below:
+          If you're already registered to{" "}
+          <span className="font-bold underline">{gsfGroupId}</span>, but
+          returning from another device, please select your account name below:
         </p>
         {/* Account Name */}
         <select
