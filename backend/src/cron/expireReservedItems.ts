@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import { db } from "../config/db.js";
-import { haveItems } from "../config/schema.js";
+import { db, supabase } from "../config/db.js";
+import { finds, haveItems } from "../config/schema.js";
 import { and, eq, lt } from "drizzle-orm";
 
 export function startExpireReservedItemsJob() {
@@ -24,6 +24,47 @@ export function startExpireReservedItemsJob() {
       console.log("[CRON] Expired reserved items");
     } catch (err) {
       console.error("[CRON] Failed to expire items", err);
+    }
+  });
+}
+
+export function startExpireFindsJob() {
+  // Runs once per day at 3am
+  cron.schedule("0 3 * * *", async () => {
+    try {
+      const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+      const oldFinds = await db
+        .select({
+          id: finds.id,
+          imageUrl: finds.imageUrl,
+        })
+        .from(finds)
+        .where(lt(finds.createdAt, twoWeeksAgo));
+
+      if (!oldFinds.length) return;
+
+      // Delete images from Supabase
+      const imagePaths = oldFinds
+        .map((f) => f.imageUrl?.split("/").pop())
+        .filter((p): p is string => Boolean(p));
+
+      if (imagePaths.length) {
+        const { error } = await supabase.storage
+          .from("loot-images")
+          .remove(imagePaths);
+
+        if (error) {
+          console.error("[CRON] Failed deleting images", error);
+        }
+      }
+
+      // Delete DB rows
+      await db.delete(finds).where(lt(finds.createdAt, twoWeeksAgo));
+
+      console.log(`[CRON] Deleted ${oldFinds.length} old finds + images`);
+    } catch (err) {
+      console.error("[CRON] Failed to expire finds", err);
     }
   });
 }

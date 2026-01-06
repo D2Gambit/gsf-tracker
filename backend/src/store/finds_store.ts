@@ -7,8 +7,9 @@ export const createFind = async (data: {
   gsfGroupId: string;
   name: string;
   description?: string;
+  quality?: string;
   foundBy: string;
-  imageUrl: string;
+  imageUrl?: string;
   createdAt: Date;
 }) => {
   return db.insert(finds).values(data).returning();
@@ -21,6 +22,7 @@ export const getHotFinds = async (gsfGroupId: string, limit = 3) => {
       gsfGroupId: finds.gsfGroupId,
       name: finds.name,
       description: finds.description,
+      quality: finds.quality,
       foundBy: finds.foundBy,
       imageUrl: finds.imageUrl,
       createdAt: finds.createdAt,

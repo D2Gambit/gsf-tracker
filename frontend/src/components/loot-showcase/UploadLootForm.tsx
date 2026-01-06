@@ -7,6 +7,7 @@ type UploadForm = {
   name: string;
   description: string;
   image: File | null;
+  quality: string;
 };
 
 export default function UploadLootForm({
@@ -22,6 +23,7 @@ export default function UploadLootForm({
     name: "",
     description: "",
     image: null,
+    quality: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,6 +37,7 @@ export default function UploadLootForm({
       image: form.image!,
       description: form.description,
       gsfGroupId: session?.gsfGroupId ?? "Unknown",
+      quality: form.quality,
     });
     setIsSubmitting(false);
     setIsModalOpen(false);
@@ -52,6 +55,24 @@ export default function UploadLootForm({
           if (file) {
             setForm((prev) => ({ ...prev, image: file }));
           }
+        }
+        if (item.type.startsWith("text")) {
+          item.getAsString((text) => {
+            try {
+              const parsedItem = JSON.parse(text);
+              setForm((prev) => ({
+                ...prev,
+                name: parsedItem.name + " - " + parsedItem.type,
+                quality: parsedItem.quality ?? prev.quality,
+                description: text,
+              }));
+            } catch {
+              setForm((prev) => ({
+                ...prev,
+                description: text,
+              }));
+            }
+          });
         }
       }
     };
@@ -77,7 +98,8 @@ export default function UploadLootForm({
             />
           ) : (
             <p className="text-zinc-400 text-sm">
-              Paste an image from clipboard (Ctrl + V)
+              Paste the item text (Ctrl + C when hovering item ingame) or image
+              from clipboard (Ctrl + V)
             </p>
           )}
         </div>
@@ -99,6 +121,22 @@ export default function UploadLootForm({
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
+
+        <label className="block mb-2 text-sm font-medium text-zinc-100">
+          Quality
+        </label>
+        <select
+          className="w-full mb-3 p-2 rounded bg-zinc-700 text-zinc-100"
+          value={form.quality}
+          onChange={(e) => setForm({ ...form, quality: e.target.value })}
+        >
+          <option value="">Optional: Select Quality</option>
+          <option value="Normal">Normal</option>
+          <option value="Magic">Magic</option>
+          <option value="Rare">Rare</option>
+          <option value="Unique">Unique</option>
+          <option value="Set">Set</option>
+        </select>
 
         {/* Actions */}
         <div className="flex justify-end space-x-3">

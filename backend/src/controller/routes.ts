@@ -67,13 +67,17 @@ api.get("/hot-finds/:gsfGroupId", async (c) => {
 api.post("/upload-finds", async (c) => {
   // image handling comes later
   const body = await c.req.parseBody();
-
-  const imageUrl = await uploadLootImage(body.image as File);
+  let imageUrl = undefined;
+  let img = body.image as File;
+  if (img instanceof File && img.size > 0) {
+    imageUrl = await uploadLootImage(body.image as File);
+  }
 
   const result = await createFind({
     gsfGroupId: body.gsfGroupId as string,
     name: body.name as string,
     description: body.description as string,
+    quality: body.quality as string,
     foundBy: body.foundBy as string,
     imageUrl: imageUrl,
     createdAt: new Date(),

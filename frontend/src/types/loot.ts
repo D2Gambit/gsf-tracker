@@ -5,6 +5,7 @@ export interface LootItem {
   foundBy: string;
   createdAt: string;
   description?: string;
+  quality?: string;
 }
 
 export interface LootUploadItem {
@@ -12,4 +13,5 @@ export interface LootUploadItem {
   name: string;
   description: string;
   gsfGroupId: string;
+  quality: string;
 }
