@@ -8,6 +8,7 @@ import { removeHotItems } from "../../utils/sorting";
 import { useAuth } from "../../../AuthContext";
 import { useFinds } from "../../hooks/useFinds";
 import { useReactions } from "../../hooks/useReactions";
+import { useNavigate } from "react-router-dom";
 
 export default function LootGrid() {
   /** ---------------------------
@@ -18,6 +19,11 @@ export default function LootGrid() {
   const [clickedImage, setClickedImage] = useState("");
   const [hoveredImage, setHoveredImage] = useState("");
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+  const accountName = parsedUserInfo?.accountName;
+
+  const navigate = useNavigate();
 
   /** ---------------------------
    * Domain state (hooks)
@@ -34,6 +40,9 @@ export default function LootGrid() {
    ---------------------------- */
 
   useEffect(() => {
+    if (!session || !parsedUserInfo || !accountName) {
+      navigate("/");
+    }
     if (!session?.gsfGroupId) return;
     loadFinds(session.gsfGroupId, true); // reset
   }, [session?.gsfGroupId]);

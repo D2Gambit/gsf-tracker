@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../AuthContext";
 
 type ExistingPlayerForm = {
   accountName: string;
@@ -18,6 +19,8 @@ export default function NewUserModal({
   const [form, setForm] = useState<ExistingPlayerForm>({
     accountName: "",
   });
+
+  const { logout } = useAuth();
 
   const handleExistingPlayerConfirmClick = async () => {
     setIsModalOpen(false); // closes the modal
@@ -82,7 +85,13 @@ export default function NewUserModal({
         </select>
 
         {/* Actions */}
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-between space-x-3">
+          <button
+            className="px-4 py-2 rounded bg-zinc-600 text-zinc-100 hover:bg-zinc-700"
+            onClick={logout}
+          >
+            Cancel
+          </button>
           <button
             className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
             onClick={handleExistingPlayerConfirmClick}

@@ -68,6 +68,8 @@ export default function SignUp() {
   const totalSteps = 2;
 
   const { session } = useAuth();
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
   const navigate = useNavigate();
 
@@ -353,7 +355,7 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-zinc-800 flex flex-col">
-      <Header />
+      {parsedUserInfo && <Header />}
 
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-md w-full space-y-8">

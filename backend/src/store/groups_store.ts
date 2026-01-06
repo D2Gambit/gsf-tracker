@@ -30,6 +30,18 @@ export const createGroup = async (data: {
   }
 };
 
+export const updateGroupPassword = async (
+  gsfGroupId: string,
+  password: string
+) => {
+  const passwordHash = await bcrypt.hash(password, 12);
+  return db
+    .update(gsfGroups)
+    .set({ passwordHash: passwordHash })
+    .where(eq(gsfGroups.gsfGroupId, gsfGroupId))
+    .returning();
+};
+
 export const validateGroupLogin = async (
   gsfGroupId: string,
   password: string

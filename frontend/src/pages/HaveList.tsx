@@ -53,10 +53,6 @@ export default function HaveList() {
 
   const navigate = useNavigate();
 
-  if (!accountName) {
-    navigate("/");
-  }
-
   const currentTab = tabData[activeTab];
   const debouncedSearch = useDebounce(searchTerm, 500);
 
@@ -115,6 +111,10 @@ export default function HaveList() {
   }, [debouncedSearch, activeTab, selectedQualities, showReservedOnly]);
 
   useEffect(() => {
+    if (!session || !parsedUserInfo || !accountName) {
+      navigate("/");
+      return;
+    }
     if (!session?.gsfGroupId) return;
 
     if (!currentTab.initialLoaded) {
@@ -129,6 +129,10 @@ export default function HaveList() {
   }, [activeTab]);
 
   useEffect(() => {
+    if (!session || !parsedUserInfo || !accountName) {
+      navigate("/");
+      return;
+    }
     if (!session?.gsfGroupId || !accountName) return;
 
     fetchHaveItemCounts(session.gsfGroupId, accountName)
@@ -141,6 +145,10 @@ export default function HaveList() {
   }, [session?.gsfGroupId, accountName]);
 
   useEffect(() => {
+    if (!session || !parsedUserInfo || !accountName) {
+      navigate("/");
+      return;
+    }
     const el = loadMoreRef.current;
     if (!el || !session?.gsfGroupId || !currentTab.initialLoaded) return;
 

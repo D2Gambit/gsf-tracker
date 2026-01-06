@@ -20,7 +20,11 @@ import {
   getHaveItems,
   updateHaveItemReservedFlag,
 } from "../store/haves_store.js";
-import { createGroup, validateGroupLogin } from "../store/groups_store.js";
+import {
+  createGroup,
+  updateGroupPassword,
+  validateGroupLogin,
+} from "../store/groups_store.js";
 import {
   createMember,
   deleteMember,
@@ -246,6 +250,21 @@ api.post("/create-group", async (c) => {
         409
       );
     }
+    console.error(err);
+    return c.json({ error: "Internal server error" }, 500);
+  }
+});
+
+api.post("/change-group-password", async (c) => {
+  const body = await c.req.parseBody();
+  try {
+    const result = await updateGroupPassword(
+      body.gsfGroupId as string,
+      body.newPassword as string
+    );
+
+    return c.json(result[0]);
+  } catch (err: any) {
     console.error(err);
     return c.json({ error: "Internal server error" }, 500);
   }
