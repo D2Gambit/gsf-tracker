@@ -221,9 +221,9 @@ export default function NeedList() {
                         <p
                           className={`text-sm mb-3 ${
                             item.isActive ? "text-gray-600" : "text-gray-400"
-                          } ${!item.description && "italic"}`}
+                          } ${(!item.description || item.description === "undefined") && "italic"}`}
                         >
-                          {item.description
+                          {(item.description && item.description !== "undefined")
                             ? item.description
                             : "No description provided."}
                         </p>
