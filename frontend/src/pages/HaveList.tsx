@@ -113,6 +113,7 @@ export default function HaveList() {
   useEffect(() => {
     if (!session || !parsedUserInfo || !accountName) {
       navigate("/");
+      return;
     }
     if (!session?.gsfGroupId) return;
 
@@ -130,6 +131,7 @@ export default function HaveList() {
   useEffect(() => {
     if (!session || !parsedUserInfo || !accountName) {
       navigate("/");
+      return;
     }
     if (!session?.gsfGroupId || !accountName) return;
 
@@ -145,6 +147,7 @@ export default function HaveList() {
   useEffect(() => {
     if (!session || !parsedUserInfo || !accountName) {
       navigate("/");
+      return;
     }
     const el = loadMoreRef.current;
     if (!el || !session?.gsfGroupId || !currentTab.initialLoaded) return;
