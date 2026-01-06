@@ -26,7 +26,10 @@ const GroupOrganizer = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [playerIdToDelete, setPlayerIdToDelete] = useState("");
 
-  if (!localStorage.getItem("gsfUserInfo") && !isModalOpen) {
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+
+  if (session?.gsfGroupId !== parsedUserInfo.gsfGroupId && !isModalOpen) {
     setIsModalOpen(true);
   }
 
