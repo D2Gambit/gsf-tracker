@@ -26,7 +26,7 @@ export default function ReactionBar({
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
-    <div className="group absolute bottom-2 right-2 z-10 flex flex-row-reverse gap-0 opacity-0 group-hover:opacity-100 rounded-full bg-zinc-800/90 px-2 py-1 shadow-md">
+    <div className="group absolute bottom-2 right-2 z-10 flex flex-row-reverse opacity-0 group-hover:opacity-100 rounded-full bg-zinc-800/90 px-2 py-1 shadow-md">
       {/* Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}

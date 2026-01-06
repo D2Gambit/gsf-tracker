@@ -109,7 +109,7 @@ export default function LootCard({
               <span
                 key={emoji}
                 title={data.accounts.join("\n")}
-                className="flex items-center gap-1 h-[24px] w-[46px] rounded-full bg-zinc-800/90 hover:bg-zinc-800/60 hover:scale-125 transition-transform text-gray-300 px-2 py-0.5 cursor-pointer"
+                className="flex items-center gap-1 rounded-full bg-zinc-800/90 hover:bg-zinc-800/60 hover:scale-125 transition-transform text-gray-300 px-2 py-0.5 cursor-pointer"
                 onClick={() => handleReaction(item.id, emoji)}
               >
                 <span>{emoji}</span>
