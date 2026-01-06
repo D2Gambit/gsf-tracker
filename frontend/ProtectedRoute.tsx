@@ -7,10 +7,14 @@ export default function ProtectedRoute({
 }: {
   children: JSX.Element;
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null; // or a spinner
+  }
 
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" replace state={{ from: location }} />;
   }
 
   return children;

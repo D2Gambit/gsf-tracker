@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 
 type AuthSession = {
   id: string;
@@ -7,30 +7,28 @@ type AuthSession = {
   createdAt: Date;
 };
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
-
 type AuthContextType = {
   isAuthenticated: boolean;
+  loading: boolean;
   session: AuthSession | null;
   login: (groupName: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
+const AuthContext = createContext<AuthContextType | null>(null);
+
 // Create a custom hook to easily consume the context
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-
   return context;
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = React.useState<AuthSession | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   const login = async (groupName: string, password: string) => {
     const formData = new FormData();
@@ -63,11 +61,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setSession(null);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const stored = localStorage.getItem("gsfSession");
     if (stored) {
       setSession(JSON.parse(stored));
     }
+    setLoading(false);
   }, []);
 
   const value = {
@@ -75,6 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     session,
     login,
     logout,
+    loading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
