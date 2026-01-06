@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
 import NewUserModal from "./NewUserModal";
 import DeleteModal from "./DeleteModal";
+import ChangeGroupPassword from "./ChangeGroupPassword";
 
 interface Player {
   id: string;
@@ -81,11 +82,16 @@ const GroupOrganizer = () => {
   return (
     <section className="bg-zinc-300 rounded-lg border border-gray-200 p-6">
       <div className="flex justify-between items-center space-x-3 mb-6">
-        <div className="flex items-center space-x-2">
-          <Users className="h-6 w-6 text-red-600" />
-          <h2 className="text-2xl font-bold text-gray-900">
-            {session?.gsfGroupId}
-          </h2>
+        <div className="flex justify-between w-full">
+          <div className="flex flex-row items-center space-x-2">
+            <Users className="h-6 w-6 text-red-600" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              {session?.gsfGroupId}
+            </h2>
+          </div>
+          {parsedUserInfo && parsedUserInfo.role === "organizer" && (
+            <ChangeGroupPassword className="flex" />
+          )}
         </div>
       </div>
 
