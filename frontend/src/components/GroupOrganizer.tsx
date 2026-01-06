@@ -30,7 +30,12 @@ const GroupOrganizer = () => {
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
-  if (session?.gsfGroupId !== parsedUserInfo.gsfGroupId && !isModalOpen) {
+  if (
+    (!session ||
+      !parsedUserInfo ||
+      session!.gsfGroupId !== parsedUserInfo.gsfGroupId) &&
+    !isModalOpen
+  ) {
     setIsModalOpen(true);
   }
 

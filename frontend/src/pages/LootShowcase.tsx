@@ -2,16 +2,9 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import LootGrid from "../components/loot-showcase/LootGrid";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../AuthContext";
 
 export default function LootShowcase() {
-  const userInfo = localStorage.getItem("gsfUserInfo");
-  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
-  const accountName = parsedUserInfo?.accountName;
-  const navigate = useNavigate();
-
-  if (!accountName) {
-    navigate("/");
-  }
   return (
     <div className="min-h-screen bg-zinc-800 flex flex-col">
       <Header />
