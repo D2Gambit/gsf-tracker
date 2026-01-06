@@ -58,7 +58,7 @@ export default function LootCard({
   return (
     <div
       key={index}
-      className="group relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
+      className="group relative bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg hover:shadow-black/30 transition-shadow"
     >
       {isHot && (
         <span
@@ -78,24 +78,9 @@ export default function LootCard({
         onMouseEnter={() => setHoveredImage(item.imageUrl)}
         onMouseLeave={() => setHoveredImage("")}
       />
-      {/* TODO: Reserve space between reactions and description for wrapping reactions */}
+
       <div className="p-4">
         <h3 className="font-semibold text-gray-900">{item.name} </h3>
-        {itemReactions && (
-          <div className="inline-flex flex-wrap gap-2 my-1 text-sm">
-            {Object.entries(itemReactions).map(([emoji, data]) => (
-              <span
-                key={emoji}
-                title={data.accounts.join("\n")}
-                className="flex items-center gap-1 rounded-full bg-zinc-800/90 hover:bg-zinc-800/60 hover:scale-125 transition-transform text-gray-300 px-2 py-0.5 cursor-pointer"
-                onClick={() => handleReaction(item.id, emoji)}
-              >
-                <span>{emoji}</span>
-                <span className="font-medium">{data.count}</span>
-              </span>
-            ))}
-          </div>
-        )}
 
         <p
           className={`text-sm text-gray-600 mb-3 ${
@@ -118,6 +103,21 @@ export default function LootCard({
             </span>
           </div>
         </div>
+        {itemReactions && (
+          <div className="inline-flex flex-wrap items-end gap-2 mt-2 text-sm">
+            {Object.entries(itemReactions).map(([emoji, data]) => (
+              <span
+                key={emoji}
+                title={data.accounts.join("\n")}
+                className="flex items-center gap-1 rounded-full bg-zinc-800/90 hover:bg-zinc-800/60 hover:scale-125 transition-transform text-gray-300 px-2 py-0.5 cursor-pointer"
+                onClick={() => handleReaction(item.id, emoji)}
+              >
+                <span>{emoji}</span>
+                <span className="font-medium">{data.count}</span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       <ReactionBar itemId={item.id} handleReaction={handleReaction} />
     </div>
