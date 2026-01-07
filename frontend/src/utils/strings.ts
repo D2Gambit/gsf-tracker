@@ -41,3 +41,16 @@ export function hasParsedDescription(rawDesc?: string) {
     return false;
   }
 }
+
+// detect if the parsed item is a material
+export function determineIfMaterial(parsedItem: {
+  name: string;
+  quantity: string;
+}) {
+  if (!parsedItem) return false;
+
+  const qty = Number(parsedItem.quantity);
+  const name = parsedItem.name;
+
+  return !name && !Number.isNaN(qty) && qty >= 1 && qty <= 50;
+}

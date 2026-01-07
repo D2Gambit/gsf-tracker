@@ -1,5 +1,6 @@
 import type { ParsedItem } from "../../types/list";
 import { getQualityColor, materialName } from "../../utils/colors";
+import { determineIfMaterial } from "../../utils/strings";
 export type ItemLineType =
   | "header"
   | "stat"
@@ -93,8 +94,7 @@ export default function ItemDescriptionRenderer({
 
     try {
       const parsed = JSON.parse(itemStats);
-      const qty = Number(parsed?.quantity);
-      isMaterial = !parsed?.name && !Number.isNaN(qty) && qty >= 1 && qty <= 50;
+      isMaterial = determineIfMaterial(parsed);
       if (isMaterial) {
         parsedName = parsed.type ?? parsed.name ?? undefined;
         const p: string[] = [];

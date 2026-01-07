@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../AuthContext";
 import type { AddHaveItemRequest } from "../../types/list";
+import { determineIfMaterial } from "../../utils/strings";
 
 type AddHaveItemForm = {
   name: string;
@@ -72,12 +73,7 @@ export default function HaveItemForm({
               const parsedItem = JSON.parse(text);
 
               setForm((prev) => {
-                const qty = Number(parsedItem.quantity);
-                const isMaterial =
-                  !parsedItem.name &&
-                  !Number.isNaN(qty) &&
-                  qty >= 1 &&
-                  qty <= 50;
+                const isMaterial = determineIfMaterial(parsedItem);
 
                 let nameVal = "";
                 let qualityVal = parsedItem.quality ?? prev?.quality ?? "";
