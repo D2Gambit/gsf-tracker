@@ -62,10 +62,8 @@ export default function ItemDescriptionRenderer({
     // already-parsed payload
     const parsedItem = description as ParsedItem;
     parsedName = parsedItem.name;
-
     let foundCorrupt = false;
 
-    console.log("Parsed item stats:", parsedItem.stats);
     parts = (parsedItem.stats || [])
       .map((stat) => {
         if (!stat?.name) return undefined;
