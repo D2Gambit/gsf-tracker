@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../AuthContext";
 import type { AddHaveItemRequest } from "../../types/list";
+import { determineIfMaterial } from "../../utils/strings";
 
 type AddHaveItemForm = {
   name: string;
@@ -70,12 +71,37 @@ export default function HaveItemForm({
           item.getAsString((text) => {
             try {
               const parsedItem = JSON.parse(text);
-              setForm((prev) => ({
-                ...prev,
-                name: parsedItem.name + " - " + parsedItem.type,
-                quality: parsedItem.quality ?? prev.quality,
-                description: text,
-              }));
+
+              setForm((prev) => {
+                const isMaterial = determineIfMaterial(parsedItem);
+
+                let nameVal = "";
+                let qualityVal = parsedItem.quality ?? prev?.quality ?? "";
+
+                if (isMaterial) {
+                  // material: use type as name and tag as Materials
+                  nameVal = String(parsedItem.type ?? "");
+                  qualityVal = "Materials";
+                } else {
+                  if (parsedItem.name) {
+                    nameVal =
+                      parsedItem.name +
+                      (parsedItem.type ? " - " + parsedItem.type : "");
+                  } else if (parsedItem.type) {
+                    nameVal = parsedItem.type;
+                  } else {
+                    nameVal = prev.name ?? "";
+                  }
+                  qualityVal = parsedItem.quality ?? prev.quality ?? "";
+                }
+
+                return {
+                  ...prev,
+                  name: nameVal,
+                  quality: qualityVal,
+                  description: text,
+                };
+              });
             } catch {
               setForm((prev) => ({
                 ...prev,

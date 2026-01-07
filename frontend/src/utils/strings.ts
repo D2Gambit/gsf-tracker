@@ -36,8 +36,21 @@ export function hasParsedDescription(rawDesc?: string) {
   if (!rawDesc) return false;
   try {
     const parsed = JSON.parse(rawDesc);
-    return !!(parsed && Array.isArray(parsed.stats));
+    return !!((parsed && Array.isArray(parsed.stats)) || parsed.type);
   } catch {
     return false;
   }
+}
+
+// detect if the parsed item is a material
+export function determineIfMaterial(parsedItem: {
+  name: string;
+  quantity: string;
+}) {
+  if (!parsedItem) return false;
+
+  const qty = Number(parsedItem.quantity);
+  const name = parsedItem.name;
+
+  return !name && !Number.isNaN(qty) && qty >= 1 && qty <= 50;
 }

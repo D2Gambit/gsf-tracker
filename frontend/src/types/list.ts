@@ -54,6 +54,8 @@ export type HaveFilters = {
 
 export type ParsedItem = {
   name?: string;
+  quantity?: string | number;
+  type?: string;
   stats: {
     corrupted: any;
     name: string;
