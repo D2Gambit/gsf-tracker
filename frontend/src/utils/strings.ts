@@ -36,7 +36,7 @@ export function hasParsedDescription(rawDesc?: string) {
   if (!rawDesc) return false;
   try {
     const parsed = JSON.parse(rawDesc);
-    return !!(parsed && Array.isArray(parsed.stats));
+    return !!((parsed && Array.isArray(parsed.stats)) || parsed.type);
   } catch {
     return false;
   }

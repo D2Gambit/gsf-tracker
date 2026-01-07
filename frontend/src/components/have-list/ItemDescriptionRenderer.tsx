@@ -1,5 +1,5 @@
 import type { ParsedItem } from "../../types/list";
-
+import { getQualityColor, materialName } from "../../utils/colors";
 export type ItemLineType =
   | "header"
   | "stat"
@@ -41,6 +41,7 @@ export default function ItemDescriptionRenderer({
 
   let parts: string[] = [];
   let parsedName: string | undefined;
+  let isMaterial = false;
 
   const safeValueToString = (value: any) => {
     if (value === null || value === undefined) return "";
@@ -64,6 +65,7 @@ export default function ItemDescriptionRenderer({
 
     let foundCorrupt = false;
 
+    console.log("Parsed item stats:", parsedItem.stats);
     parts = (parsedItem.stats || [])
       .map((stat) => {
         if (!stat?.name) return undefined;
@@ -89,53 +91,79 @@ export default function ItemDescriptionRenderer({
   } else if (Array.isArray(description)) {
     parts = description;
   } else {
-    // string fallback
     const itemStats = description.trim();
-    parts = itemStats
-      .split(/,(?![^(]*\))/)
-      .map((s) => s.trim())
-      .filter(Boolean);
 
-    if (itemStats.includes("\n")) {
-      const lines = itemStats
-        .split("\n")
+    try {
+      const parsed = JSON.parse(itemStats);
+      const qty = Number(parsed?.quantity);
+      isMaterial = !parsed?.name && !Number.isNaN(qty) && qty >= 1 && qty <= 50;
+      if (isMaterial) {
+        parsedName = parsed.type ?? parsed.name ?? undefined;
+        const p: string[] = [];
+        p.push(`Quantity: ${parsed.quantity}`);
+        parts = p;
+      } else {
+        parts = itemStats
+          .split(/,(?![^(]*\))/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        if (itemStats.includes("\n")) {
+          const lines = itemStats
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          if (lines.length > 1) {
+            parsedName = lines[0];
+            parts = lines.slice(1);
+          }
+        }
+      }
+    } catch {
+      parts = itemStats
+        .split(/,(?![^(]*\))/)
         .map((s) => s.trim())
         .filter(Boolean);
-      if (lines.length > 1) {
-        parsedName = lines[0];
-        parts = lines.slice(1);
+
+      if (itemStats.includes("\n")) {
+        const lines = itemStats
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        if (lines.length > 1) {
+          parsedName = lines[0];
+          parts = lines.slice(1);
+        }
       }
     }
   }
 
-  const finalName = itemNameProp ?? parsedName;
-
-  const getQualityColor = (qual?: string) => {
-    switch (qual) {
-      case "Normal":
-        return "text-gray-300";
-      case "Magic":
-        return "text-blue-300";
-      case "Rare":
-        return "text-yellow-300";
-      case "Set":
-        return "text-green-300";
-      case "Unique":
-        return "text-orange-300";
-      default:
-        return "text-yellow-300";
-    }
-  };
-
+  const actualName = itemNameProp ?? parsedName;
   return (
     <div className={className}>
-      {finalName && (
+      {actualName && (
         <div
-          className={`text-center mb-1 font-bold text-lg drop-shadow-[1px_1px_1px_black] ${getQualityColor(
-            quality
-          )}`}
+          className={`text-center mb-1 font-bold bg-opacity-0 text-lg drop-shadow-[1px_1px_1px_black] ${
+            quality === "Unique"
+              ? "text-orange-300"
+              : isMaterial &&
+                materialName.redName.some((name) => actualName.includes(name))
+              ? "text-red-500"
+              : isMaterial &&
+                materialName.whiteName.some((name) => actualName.includes(name))
+              ? "text-white"
+              : isMaterial &&
+                materialName.tealName.some((name) => actualName.includes(name))
+              ? "text-teal-600"
+              : isMaterial &&
+                materialName.goldName.some((name) => actualName.includes(name))
+              ? "text-orange-200"
+              : isMaterial
+              ? "text-orange-400"
+              : getQualityColor(quality || "Normal")
+          } `}
         >
-          {finalName}
+          {actualName}
         </div>
       )}
       {foundBy && (
@@ -149,7 +177,11 @@ export default function ItemDescriptionRenderer({
         return (
           <div
             className={`text-center mb-0.5 drop-shadow-[1px_1px_1px_black] ${
-              isCorrupted ? "text-red-400 font-semibold" : "text-blue-400"
+              isCorrupted
+                ? "text-red-400 font-semibold"
+                : isMaterial
+                ? "text-gray-300"
+                : "text-blue-400"
             }`}
             key={i}
           >

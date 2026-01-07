@@ -70,12 +70,42 @@ export default function HaveItemForm({
           item.getAsString((text) => {
             try {
               const parsedItem = JSON.parse(text);
-              setForm((prev) => ({
-                ...prev,
-                name: parsedItem.name + " - " + parsedItem.type,
-                quality: parsedItem.quality ?? prev.quality,
-                description: text,
-              }));
+
+              setForm((prev) => {
+                const qty = Number(parsedItem.quantity);
+                const isMaterial =
+                  !parsedItem.name &&
+                  !Number.isNaN(qty) &&
+                  qty >= 1 &&
+                  qty <= 50;
+
+                let nameVal = "";
+                let qualityVal = parsedItem.quality ?? prev?.quality ?? "";
+
+                if (isMaterial) {
+                  // material: use type as name and tag as Materials
+                  nameVal = String(parsedItem.type ?? "");
+                  qualityVal = "Materials";
+                } else {
+                  if (parsedItem.name) {
+                    nameVal =
+                      parsedItem.name +
+                      (parsedItem.type ? " - " + parsedItem.type : "");
+                  } else if (parsedItem.type) {
+                    nameVal = parsedItem.type;
+                  } else {
+                    nameVal = prev.name ?? "";
+                  }
+                  qualityVal = parsedItem.quality ?? prev.quality ?? "";
+                }
+
+                return {
+                  ...prev,
+                  name: nameVal,
+                  quality: qualityVal,
+                  description: text,
+                };
+              });
             } catch {
               setForm((prev) => ({
                 ...prev,
