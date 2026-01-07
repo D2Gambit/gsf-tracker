@@ -4,6 +4,13 @@ import { Calendar } from "lucide-react";
 import ReactionBar from "./ReactionBar";
 import { useAuth } from "../../../AuthContext";
 import { toast } from "react-toastify";
+import { useState } from "react";
+import { HoverPreview } from "../have-list/HoverPreview";
+import ItemDescriptionRenderer from "../have-list/ItemDescriptionRenderer";
+import {
+  hasParsedDescription,
+  normalizeDescriptionForModal,
+} from "../../utils/strings";
 
 type LootCardProps = {
   index: string;
@@ -30,6 +37,15 @@ export default function LootCard({
   setClickedImage,
 }: LootCardProps) {
   const { session } = useAuth();
+
+  const [hoveredItem, setHoveredItem] = useState<LootItem | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const normalized = normalizeDescriptionForModal(item.description, item.name);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  };
 
   // When a reaction is clicked, save the reaction
   const handleReaction = async (findId: string, emoji: string) => {
@@ -68,16 +84,42 @@ export default function LootCard({
           🔥
         </span>
       )}
-      <img
-        src={item.imageUrl}
-        alt={item.name}
-        className="w-full h-48 object-cover hover:cursor-pointer"
-        onClick={() => {
-          setClickedImage(item.imageUrl);
-        }}
-        onMouseEnter={() => setHoveredImage(item.imageUrl)}
-        onMouseLeave={() => setHoveredImage("")}
-      />
+      {item.imageUrl ? (
+        <img
+          src={item.imageUrl}
+          alt={item.name}
+          className="w-full h-48 object-cover hover:cursor-pointer"
+          onClick={() => {
+            setClickedImage(item.imageUrl);
+          }}
+          onMouseEnter={(e) => {
+            setHoveredItem(item);
+            setMousePos({ x: e.clientX, y: e.clientY });
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHoveredItem(null)}
+        />
+      ) : (
+        <div
+          onClick={() => {
+            setClickedImage(item.imageUrl);
+          }}
+          onMouseEnter={(e) => {
+            setHoveredItem(item);
+            setMousePos({ x: e.clientX, y: e.clientY });
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <ItemDescriptionRenderer
+            description={normalized.description}
+            itemName={item.name}
+            foundBy={item.foundBy}
+            quality={item.quality}
+            className="w-full h-48 overflow-hidden object-cover hover:cursor-pointer font-serif bg-black/85 text-md leading-snug bg-gradient-radial from-zinc-800 via-zinc-900 to-black px-4 py-3 min-w-[360px]"
+          />
+        </div>
+      )}
 
       <div className="p-4">
         <h3 className="font-semibold text-gray-900">{item.name} </h3>
@@ -87,7 +129,9 @@ export default function LootCard({
             !item.description && "italic"
           }`}
         >
-          {item.description ? item.description : "No description provided."}
+          {item.description && !hasParsedDescription(item.description)
+            ? item.description
+            : "No description provided."}
         </p>
         <div className="flex items-center justify-between text-sm text-gray-500">
           <span>
@@ -119,6 +163,7 @@ export default function LootCard({
           </div>
         )}
       </div>
+      {hoveredItem && <HoverPreview item={hoveredItem} position={mousePos} />}
       <ReactionBar itemId={item.id} handleReaction={handleReaction} />
     </div>
   );

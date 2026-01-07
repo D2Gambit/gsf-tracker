@@ -4,7 +4,10 @@ import { api } from "./controller/routes.js";
 import { serveStatic } from "@hono/node-server/serve-static";
 import path from "node:path";
 import fs from "node:fs";
-import { startExpireReservedItemsJob } from "./cron/expireReservedItems.js";
+import {
+  startExpireFindsJob,
+  startExpireReservedItemsJob,
+} from "./cron/expireReservedItems.js";
 import { fileURLToPath } from "url";
 
 const app = new Hono();
@@ -15,6 +18,7 @@ const app = new Hono();
 app.route("/api", api);
 
 startExpireReservedItemsJob();
+startExpireFindsJob();
 
 // --------------------
 // Frontend

@@ -11,8 +11,9 @@ export const finds = pgTable("gsffinds", {
   gsfGroupId: text("gsf_group_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
+  quality: text("quality"),
   foundBy: text("found_by").notNull(),
-  imageUrl: text("image_url").notNull(),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

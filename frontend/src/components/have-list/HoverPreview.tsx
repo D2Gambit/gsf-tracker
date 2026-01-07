@@ -1,9 +1,10 @@
 import type { HaveItem } from "../../types/list";
 import ItemDescriptionRenderer from "./ItemDescriptionRenderer";
 import { normalizeDescriptionForModal } from "../../utils/strings";
+import type { LootItem } from "../../types/loot";
 
 type HoverPreviewProps = {
-  item: HaveItem;
+  item: HaveItem | LootItem;
   position: { x: number; y: number };
 };
 
@@ -13,8 +14,8 @@ export function HoverPreview({ item, position }: HoverPreviewProps) {
     <div
       className="fixed z-50 pointer-events-none"
       style={{
-        left: position.x + 16,
-        top: position.y + 16,
+        left: Math.min(position.x + 16, window.innerWidth - 620),
+        top: Math.min(position.y + 16, window.innerHeight - 620),
       }}
     >
       <div className="rounded-lg shadow-xl border border-gray-300 p-3 max-w-xs relative md:max-w-[500px] w-[600px] max-h-[600px] z-10 bg-black/85 rounded-lg overflow-hidden">
