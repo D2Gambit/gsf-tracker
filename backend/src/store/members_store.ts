@@ -1,5 +1,5 @@
 import { db } from "../config/db.js";
-import { eq } from "drizzle-orm/sql/expressions/conditions";
+import { eq, and } from "drizzle-orm/sql/expressions/conditions";
 import { gsfMembers } from "../config/schema.js";
 
 export const createMember = async (data: {
@@ -41,9 +41,17 @@ export const getMembersByGroup = async (gsfGroupId: string) => {
     .where(eq(gsfMembers.gsfGroupId, gsfGroupId));
 };
 
-export const getMemberByAccountName = async (accountName: string) => {
+export const getMemberByAccountName = async (
+  gsfGroupId: string,
+  accountName: string
+) => {
   return db
     .select()
     .from(gsfMembers)
-    .where(eq(gsfMembers.accountName, accountName));
+    .where(
+      and(
+        eq(gsfMembers.gsfGroupId, gsfGroupId),
+        eq(gsfMembers.accountName, accountName)
+      )
+    );
 };

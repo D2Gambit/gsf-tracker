@@ -20,12 +20,14 @@ export default function NewUserModal({
     accountName: "",
   });
 
-  const { logout } = useAuth();
+  const { session, logout } = useAuth();
 
   const handleExistingPlayerConfirmClick = async () => {
     setIsModalOpen(false); // closes the modal
     try {
-      const res = await fetch(`/api/member/${form.accountName}`);
+      const res = await fetch(
+        `/api/member/${session?.gsfGroupId}/${form.accountName}`
+      );
 
       if (!res.ok) {
         throw new Error("Request failed");

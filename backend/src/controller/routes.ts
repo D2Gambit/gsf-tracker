@@ -323,6 +323,6 @@ api.delete(`/delete-member/:id`, async (c) => {
   return c.json(await deleteMember(c.req.param("id")));
 });
 
-api.get(`/member/:accountName`, async (c) => {
-  return c.json(await getMemberByAccountName(c.req.param("accountName")));
+api.get(`/member/:gsfGroupId/:accountName`, async (c) => {
+  return c.json(await getMemberByAccountName(c.req.param("gsfGroupId"), c.req.param("accountName")));
 });
