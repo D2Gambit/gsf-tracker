@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../AuthContext";
 import { Loader } from "lucide-react";
 import type { LootUploadItem } from "../../types/loot";
-import { determineIfMaterial } from "../../utils/strings";
+import { determineIfCharm, determineIfMaterial } from "../../utils/strings";
 
 type UploadForm = {
   name: string;
@@ -64,6 +64,7 @@ export default function UploadLootForm({
 
               setForm((prev) => {
                 const isMaterial = determineIfMaterial(parsedItem);
+                const isCharm = determineIfCharm(parsedItem);
 
                 let nameVal = "";
                 let qualityVal = parsedItem.quality ?? prev?.quality ?? "";
@@ -72,6 +73,26 @@ export default function UploadLootForm({
                   // material: use type as name and tag as Materials
                   nameVal = String(parsedItem.type ?? "");
                   qualityVal = "Materials";
+                } else if (isCharm) {
+                  qualityVal = "Charms";
+                  nameVal =
+                    parsedItem.name +
+                    (parsedItem.type ? " - " + parsedItem.type : "");
+                  if (
+                    parsedItem.name === "Hellfire Torch" &&
+                    parsedItem.stats?.length > 0
+                  ) {
+                    parsedItem.stats = parsedItem.stats.map((stat) => {
+                      if (stat.skill) {
+                        return {
+                          name: stat.skill,
+                          value: stat.value,
+                        };
+                      }
+
+                      return stat;
+                    });
+                  }
                 } else {
                   if (parsedItem.name) {
                     nameVal =
@@ -89,7 +110,7 @@ export default function UploadLootForm({
                   ...prev,
                   name: nameVal,
                   quality: qualityVal,
-                  description: text,
+                  description: JSON.stringify(parsedItem),
                 };
               });
             } catch {

@@ -54,3 +54,13 @@ export function determineIfMaterial(parsedItem: {
 
   return !name && !Number.isNaN(qty) && qty >= 1 && qty <= 50;
 }
+
+// detect if the parsed item is a material
+export function determineIfCharm(parsedItem: { name: string; type: string }) {
+  if (!parsedItem) return false;
+
+  const type = parsedItem.type;
+  const name = parsedItem.name;
+
+  return name && type && type.includes("Charm");
+}
