@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm/sql/expressions/conditions";
 import { desc, lt, and, or, sql } from "drizzle-orm";
-import { db } from "../config/db.js";
+import { db, supabase } from "../config/db.js";
 import { findReactions, finds } from "../config/schema.js";
 
 export const createFind = async (data: {
@@ -84,6 +84,28 @@ export const getLatestFinds = async (
         }
       : null,
   };
+};
+
+export const deleteFind = async (id: string) => {
+  const findToDelete = await db
+    .select({
+      imageUrl: finds.imageUrl,
+    })
+    .from(finds)
+    .where(eq(finds.id, parseInt(id)));
+
+  const imagePaths = findToDelete
+    .map((f) => f.imageUrl?.split("/").pop())
+    .filter((p): p is string => Boolean(p));
+
+  if (imagePaths.length) {
+    await supabase.storage.from("loot-images").remove(imagePaths);
+  }
+
+  return await db
+    .delete(finds)
+    .where(eq(finds.id, parseInt(id)))
+    .returning();
 };
 
 export const createFindReaction = async (data: {

@@ -4,6 +4,7 @@ import { Calendar } from "lucide-react";
 import ReactionBar from "./ReactionBar";
 import { useAuth } from "../../../AuthContext";
 import { toast } from "react-toastify";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { HoverPreview } from "../have-list/HoverPreview";
 import ItemDescriptionRenderer from "../have-list/ItemDescriptionRenderer";
@@ -23,7 +24,8 @@ type LootCardProps = {
     accountName: string;
     emoji: string;
   }) => Promise<void>;
-  setHoveredImage: React.Dispatch<React.SetStateAction<string>>;
+  showDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setItemToDelete: React.Dispatch<React.SetStateAction<string>>;
   setClickedImage: React.Dispatch<React.SetStateAction<string>>;
 };
 
@@ -33,7 +35,8 @@ export default function LootCard({
   isHot,
   itemReactions,
   saveReaction,
-  setHoveredImage,
+  showDeleteModal,
+  setItemToDelete,
   setClickedImage,
 }: LootCardProps) {
   const { session } = useAuth();
@@ -42,6 +45,10 @@ export default function LootCard({
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const normalized = normalizeDescriptionForModal(item.description, item.name);
+
+  const userInfo = localStorage.getItem("gsfUserInfo");
+  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+  const accountName = parsedUserInfo.accountName;
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
@@ -78,11 +85,23 @@ export default function LootCard({
     >
       {isHot && (
         <span
-          className="text-[2em] absolute top-0 left-0 rounded-br-2xl rounded-tl-lg bg-gradient-to-tl from-gray-600/60 to-white"
+          className="text-[2em] absolute top-0 left-0 rounded-br-md rounded-tl-lg bg-gradient-to-tl from-gray-600/60 to-white"
           title="This item is HOT!"
         >
           🔥
         </span>
+      )}
+      {accountName === item.foundBy && (
+        <button
+          className="absolute top-0 right-0 rounded-bl-md rounded-tr-lg bg-gradient-to-tr from-gray-600/60 to-white z-20 hover:bg-red-700"
+          title="This item is HOT!"
+          onClick={() => {
+            setItemToDelete(item.id);
+            showDeleteModal(true);
+          }}
+        >
+          <Trash2 className="w-12 h-12 p-2" />
+        </button>
       )}
       {item.imageUrl ? (
         <img

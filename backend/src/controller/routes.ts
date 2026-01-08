@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import {
   createFind,
   createFindReaction,
+  deleteFind,
   getGsfReactions,
   getHotFinds,
   getLatestFinds,
@@ -84,6 +85,13 @@ api.post("/upload-finds", async (c) => {
   });
 
   return c.json(result[0]);
+});
+
+api.delete("/find/:findId", async (c) => {
+  const id = c.req.param("findId");
+
+  const deletedFind = await deleteFind(id);
+  return c.json(deletedFind);
 });
 
 api.post("/create-reaction", async (c) => {
@@ -324,5 +332,10 @@ api.delete(`/delete-member/:id`, async (c) => {
 });
 
 api.get(`/member/:gsfGroupId/:accountName`, async (c) => {
-  return c.json(await getMemberByAccountName(c.req.param("gsfGroupId"), c.req.param("accountName")));
+  return c.json(
+    await getMemberByAccountName(
+      c.req.param("gsfGroupId"),
+      c.req.param("accountName")
+    )
+  );
 });

@@ -80,6 +80,7 @@ export function useFinds() {
 
   return {
     items,
+    setItems,
     hotItems,
     loading,
     hasMore,

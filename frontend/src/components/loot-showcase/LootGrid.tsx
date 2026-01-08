@@ -9,6 +9,8 @@ import { useAuth } from "../../../AuthContext";
 import { useFinds } from "../../hooks/useFinds";
 import { useReactions } from "../../hooks/useReactions";
 import { useNavigate } from "react-router-dom";
+import { deleteFind } from "../../api/finds.api";
+import DeleteModal from "../DeleteModal";
 
 export default function LootGrid() {
   /** ---------------------------
@@ -17,7 +19,8 @@ export default function LootGrid() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [clickedImage, setClickedImage] = useState("");
-  const [hoveredImage, setHoveredImage] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [findIdToDelete, setFindIdToDelete] = useState("");
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
@@ -30,8 +33,15 @@ export default function LootGrid() {
    ---------------------------- */
   const { session } = useAuth();
 
-  const { items, hotItems, loading, loadFinds, saveFind, loadHotFinds } =
-    useFinds();
+  const {
+    items,
+    setItems,
+    hotItems,
+    loading,
+    loadFinds,
+    saveFind,
+    loadHotFinds,
+  } = useFinds();
 
   const { reactions, loadReactions, saveReaction } = useReactions();
 
@@ -79,6 +89,11 @@ export default function LootGrid() {
     [items, hotItems]
   );
 
+  const handleDelete = (findId: string) => {
+    deleteFind(findId);
+    setItems(items.filter((item) => item.id !== findId));
+  };
+
   return (
     <section className="bg-zinc-300 rounded-lg border border-gray-200 p-6">
       <div className="flex justify-between items-center mb-6">
@@ -103,7 +118,8 @@ export default function LootGrid() {
             isHot={true}
             itemReactions={reactions[item.id]}
             saveReaction={saveReaction}
-            setHoveredImage={setHoveredImage}
+            showDeleteModal={setShowDeleteModal}
+            setItemToDelete={setFindIdToDelete}
             setClickedImage={setClickedImage}
           />
         ))}
@@ -115,7 +131,8 @@ export default function LootGrid() {
             isHot={false}
             itemReactions={reactions[item.id]}
             saveReaction={saveReaction}
-            setHoveredImage={setHoveredImage}
+            showDeleteModal={setShowDeleteModal}
+            setItemToDelete={setFindIdToDelete}
             setClickedImage={setClickedImage}
           />
         ))}
@@ -127,8 +144,6 @@ export default function LootGrid() {
           onClose={() => setClickedImage("")}
         />
       )}
-
-      <ImageTooltip imageUrl={hoveredImage} />
 
       {isModalOpen && (
         <UploadLootForm
@@ -152,6 +167,29 @@ export default function LootGrid() {
       {loading && (
         <p className="text-center text-zinc-500 mt-4">Loading more finds...</p>
       )}
+
+      {/* Render the Confirmation Component */}
+      <DeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setFindIdToDelete("");
+        }}
+        onConfirm={() => handleDelete(findIdToDelete)}
+        title="Remove Showcase Item"
+        message={
+          <span>
+            Delete{" "}
+            <span className="font-extrabold">
+              {items.filter((item) => item.id === findIdToDelete).length > 0 &&
+                items.filter((item) => item.id === findIdToDelete)[0].name}
+              ?
+            </span>{" "}
+            This action cannot be undone.
+          </span>
+        }
+        confirmLabel="Delete"
+      />
     </section>
   );
 }
