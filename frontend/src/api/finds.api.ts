@@ -20,6 +20,15 @@ export async function fetchHotFinds(groupId: string) {
   return res.json();
 }
 
+export async function deleteFind(findId: string) {
+  const res = await fetch(`/api/find/${findId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete find! Please try again.");
+
+  return res.json();
+}
+
 export async function createFind(find: LootUploadItem) {
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
