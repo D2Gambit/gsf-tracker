@@ -20,7 +20,7 @@ export default function NewUserModal({
     accountName: "",
   });
 
-  const { session, logout } = useAuth();
+  const { session, logout, selectUser } = useAuth();
 
   const handleExistingPlayerConfirmClick = async () => {
     setIsModalOpen(false); // closes the modal
@@ -35,15 +35,13 @@ export default function NewUserModal({
 
       const resData = await res.json();
 
-      localStorage.setItem(
-        "gsfUserInfo",
-        JSON.stringify({
-          gsfGroupId: resData[0].gsfGroupId,
-          role: resData[0].role,
-          accountName: resData[0].accountName,
-          userInfo: resData[0],
-        })
-      );
+      selectUser({
+        gsfGroupId: resData[0].gsfGroupId,
+        role: resData[0].role,
+        accountName: resData[0].accountName,
+        userInfo: resData[0],
+      });
+
       setIsModalOpen(false);
     } catch (err) {
       console.error("Error calling backend:", err);
