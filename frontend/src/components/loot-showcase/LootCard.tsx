@@ -94,7 +94,7 @@ export default function LootCard({
       {accountName === item.foundBy && (
         <button
           className="absolute top-0 right-0 rounded-bl-md rounded-tr-lg bg-gradient-to-tr from-gray-600/60 to-white z-20 hover:bg-red-700"
-          title="This item is HOT!"
+          title="Delete Item"
           onClick={() => {
             setItemToDelete(item.id);
             showDeleteModal(true);
