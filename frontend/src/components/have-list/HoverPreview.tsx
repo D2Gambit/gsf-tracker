@@ -2,6 +2,7 @@ import type { HaveItem } from "../../types/list";
 import ItemDescriptionRenderer from "./ItemDescriptionRenderer";
 import { normalizeDescriptionForModal } from "../../utils/strings";
 import type { LootItem } from "../../types/loot";
+import { useLayoutEffect, useRef, useState } from "react";
 
 type HoverPreviewProps = {
   item: HaveItem | LootItem;
@@ -10,12 +11,37 @@ type HoverPreviewProps = {
 
 export function HoverPreview({ item, position }: HoverPreviewProps) {
   const normalized = normalizeDescriptionForModal(item.description, item.name);
+  const ref = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  const offset = 16;
+
+  useLayoutEffect(() => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setSize({
+        width: rect.width,
+        height: rect.height,
+      });
+    }
+  }, [item]);
+
+  const left = Math.min(
+    position.x + offset,
+    window.innerWidth - size.width - offset
+  );
+
+  const top = Math.min(
+    position.y + offset,
+    window.innerHeight - size.height - offset
+  );
   return (
     <div
       className="fixed z-50 pointer-events-none"
+      ref={ref}
       style={{
-        left: Math.min(position.x + 16, window.innerWidth - 620),
-        top: Math.min(position.y + 16, window.innerHeight - 620),
+        left,
+        top,
       }}
     >
       <div className="rounded-lg shadow-xl border border-gray-300 p-3 max-w-xs relative md:max-w-[500px] w-[600px] max-h-[600px] z-10 bg-black/85 rounded-lg overflow-hidden">
