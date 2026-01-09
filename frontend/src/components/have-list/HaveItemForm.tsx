@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../AuthContext";
 import type { AddHaveItemRequest } from "../../types/list";
-import { determineIfMaterial } from "../../utils/strings";
+import { determineIfCharm, determineIfMaterial } from "../../utils/strings";
 
 type AddHaveItemForm = {
   name: string;
@@ -74,14 +74,21 @@ export default function HaveItemForm({
 
               setForm((prev) => {
                 const isMaterial = determineIfMaterial(parsedItem);
+                const isCharm = determineIfCharm(parsedItem);
 
                 let nameVal = "";
                 let qualityVal = parsedItem.quality ?? prev?.quality ?? "";
 
+                // determine the item name and quality
                 if (isMaterial) {
                   // material: use type as name and tag as Materials
                   nameVal = String(parsedItem.type ?? "");
                   qualityVal = "Materials";
+                } else if (isCharm) {
+                  qualityVal = "Charms";
+                  nameVal =
+                    parsedItem.name +
+                    (parsedItem.type ? " - " + parsedItem.type : "");
                 } else {
                   if (parsedItem.name) {
                     nameVal =
@@ -95,11 +102,25 @@ export default function HaveItemForm({
                   qualityVal = parsedItem.quality ?? prev.quality ?? "";
                 }
 
+                // modify the stat "to Amazon Skill Levels" to use the stat.skill value instead
+                if (parsedItem.stats?.length > 0) {
+                  parsedItem.stats = parsedItem.stats.map((stat) => {
+                    if (stat.skill) {
+                      return {
+                        name: stat.skill,
+                        value: stat.value,
+                      };
+                    }
+
+                    return stat;
+                  });
+                }
+
                 return {
                   ...prev,
                   name: nameVal,
                   quality: qualityVal,
-                  description: text,
+                  description: JSON.stringify(parsedItem),
                 };
               });
             } catch {
