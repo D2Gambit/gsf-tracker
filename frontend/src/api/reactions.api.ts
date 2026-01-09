@@ -21,3 +21,20 @@ export async function createReaction(obj: any) {
   }
   return res.json();
 }
+
+export async function deleteReaction(obj: any) {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(obj)) {
+    formData.append(key, String(value));
+  }
+
+  const res = await fetch(`/api/delete-reaction`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete reaction");
+  }
+  return res.json();
+}

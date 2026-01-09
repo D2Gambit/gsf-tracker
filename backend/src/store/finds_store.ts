@@ -129,6 +129,25 @@ export const createFindReaction = async (data: {
   }
 };
 
+export const deleteFindReaction = async (data: {
+  gsfGroupId: string;
+  findId: number;
+  accountName: string;
+  emoji: string;
+}) => {
+  return db
+    .delete(findReactions)
+    .where(
+      and(
+        eq(findReactions.gsfGroupId, data.gsfGroupId),
+        eq(findReactions.findId, data.findId),
+        eq(findReactions.accountName, data.accountName),
+        eq(findReactions.emoji, data.emoji)
+      )
+    )
+    .returning();
+};
+
 export const getGsfReactions = async (gsfGroupId: string) => {
   return db
     .select()
