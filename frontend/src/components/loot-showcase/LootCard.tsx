@@ -188,7 +188,7 @@ export default function LootCard({
                   title={data.accounts.join("\n")}
                   className={`flex items-center gap-1 rounded-full px-2 py-0.5 cursor-pointer border transition-all hover:scale-110 ${
                     hasReacted
-                      ? "border-blue-500 bg-blue-100/10 text-blue-600 hover:bg-zinc-400/60"
+                      ? "border-blue-500 bg-slate-700 text-blue-400 hover:bg-slate-800/70"
                       : "border-transparent bg-zinc-800/90 text-gray-300 hover:bg-zinc-800/60"
                   }`}
                   onClick={() => handleReaction(item.id, emoji)}
