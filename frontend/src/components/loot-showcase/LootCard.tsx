@@ -1,10 +1,12 @@
 import type { LootItem } from "../../types/loot";
-import type { ReactionCounts } from "../../types/reactions";
-import { Calendar } from "lucide-react";
+import type {
+  DeleteReactionRequest,
+  ReactionCounts,
+} from "../../types/reactions";
+import { Calendar, Trash2 } from "lucide-react";
 import ReactionBar from "./ReactionBar";
 import { useAuth } from "../../../AuthContext";
 import { toast } from "react-toastify";
-import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { HoverPreview } from "../have-list/HoverPreview";
 import ItemDescriptionRenderer from "../have-list/ItemDescriptionRenderer";
@@ -24,6 +26,7 @@ type LootCardProps = {
     accountName: string;
     emoji: string;
   }) => Promise<void>;
+  removeReaction: (data: DeleteReactionRequest) => Promise<void>;
   showDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
   setItemToDelete: React.Dispatch<React.SetStateAction<string>>;
   setClickedImage: React.Dispatch<React.SetStateAction<string>>;
@@ -35,47 +38,54 @@ export default function LootCard({
   isHot,
   itemReactions,
   saveReaction,
+  removeReaction,
   showDeleteModal,
   setItemToDelete,
   setClickedImage,
 }: LootCardProps) {
-  const { session } = useAuth();
+  const { session, userInfo } = useAuth();
 
   const [hoveredItem, setHoveredItem] = useState<LootItem | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const normalized = normalizeDescriptionForModal(item.description, item.name);
-
-  const userInfo = localStorage.getItem("gsfUserInfo");
-  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
-  const accountName = parsedUserInfo.accountName;
+  const accountName = userInfo?.accountName;
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
   };
 
-  // When a reaction is clicked, save the reaction
   const handleReaction = async (findId: string, emoji: string) => {
-    const userInfo = localStorage.getItem("gsfUserInfo");
-    const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+    if (!session?.gsfGroupId || !userInfo?.accountName) return;
 
-    if (!session?.gsfGroupId || !parsedUserInfo.accountName) return;
-
-    if (
+    // Check if the user has already reacted with this emoji
+    const hasReacted =
       itemReactions &&
       itemReactions[emoji] &&
-      itemReactions[emoji].accounts.includes(parsedUserInfo.accountName)
-    ) {
-      toast.error("You have already reacted to this post!");
-      return;
-    }
+      itemReactions[emoji].accounts.includes(userInfo.accountName);
 
-    await saveReaction({
-      gsfGroupId: session.gsfGroupId,
-      findId,
-      accountName: parsedUserInfo.accountName,
-      emoji,
-    });
+    try {
+      if (hasReacted) {
+        // User has reacted, so remove the reaction
+        await removeReaction({
+          gsfGroupId: session.gsfGroupId,
+          findId,
+          accountName: userInfo.accountName,
+          emoji,
+        });
+      } else {
+        // User has not reacted, so save the reaction
+        await saveReaction({
+          gsfGroupId: session.gsfGroupId,
+          findId,
+          accountName: userInfo.accountName,
+          emoji,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to update reaction", error);
+      toast.error("Something went wrong updating your reaction.");
+    }
   };
 
   return (
@@ -168,17 +178,26 @@ export default function LootCard({
         </div>
         {itemReactions && (
           <div className="inline-flex flex-wrap items-end gap-2 mt-2 text-sm">
-            {Object.entries(itemReactions).map(([emoji, data]) => (
-              <span
-                key={emoji}
-                title={data.accounts.join("\n")}
-                className="flex items-center gap-1 rounded-full bg-zinc-800/90 hover:bg-zinc-800/60 hover:scale-125 transition-transform text-gray-300 px-2 py-0.5 cursor-pointer"
-                onClick={() => handleReaction(item.id, emoji)}
-              >
-                <span>{emoji}</span>
-                <span className="font-medium">{data.count}</span>
-              </span>
-            ))}
+            {Object.entries(itemReactions).map(([emoji, data]) => {
+              const hasReacted =
+                accountName && data.accounts.includes(accountName);
+
+              return (
+                <span
+                  key={emoji}
+                  title={data.accounts.join("\n")}
+                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 cursor-pointer border transition-all hover:scale-110 ${
+                    hasReacted
+                      ? "border-blue-500 bg-slate-700 text-blue-400 hover:bg-slate-800/70"
+                      : "border-transparent bg-zinc-800/90 text-gray-300 hover:bg-zinc-800/60"
+                  }`}
+                  onClick={() => handleReaction(item.id, emoji)}
+                >
+                  <span>{emoji}</span>
+                  <span className="font-medium">{data.count}</span>
+                </span>
+              );
+            })}
           </div>
         )}
       </div>

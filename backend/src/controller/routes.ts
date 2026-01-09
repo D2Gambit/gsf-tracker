@@ -3,6 +3,7 @@ import {
   createFind,
   createFindReaction,
   deleteFind,
+  deleteFindReaction,
   getGsfReactions,
   getHotFinds,
   getLatestFinds,
@@ -116,6 +117,24 @@ api.post("/create-reaction", async (c) => {
     }
 
     console.error(err);
+    return c.json({ error: "Internal server error" }, 500);
+  }
+});
+
+api.delete("/delete-reaction", async (c) => {
+  const body = await c.req.parseBody();
+
+  try {
+    const result = await deleteFindReaction({
+      gsfGroupId: body.gsfGroupId as string,
+      findId: parseInt(body.findId as string),
+      accountName: body.accountName as string,
+      emoji: body.emoji as string,
+    });
+
+    return c.json(result);
+  } catch (err: any) {
+    console.error("Error deleting reaction:", err);
     return c.json({ error: "Internal server error" }, 500);
   }
 });

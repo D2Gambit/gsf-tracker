@@ -1,3 +1,5 @@
+import type { DeleteReactionRequest } from "../types/reactions";
+
 export async function fetchFindReactions(groupId: string) {
   const res = await fetch(`/api/find-reactions/${groupId}`);
   if (!res.ok) throw new Error("Failed to fetch reactions");
@@ -18,6 +20,23 @@ export async function createReaction(obj: any) {
   }
   if (!res.ok) {
     throw new Error("Failed to create reaction");
+  }
+  return res.json();
+}
+
+export async function deleteReaction(deleteRequest: DeleteReactionRequest) {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(deleteRequest)) {
+    formData.append(key, String(value));
+  }
+
+  const res = await fetch(`/api/delete-reaction`, {
+    method: "DELETE",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete reaction");
   }
   return res.json();
 }

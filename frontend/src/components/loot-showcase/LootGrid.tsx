@@ -22,16 +22,14 @@ export default function LootGrid() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [findIdToDelete, setFindIdToDelete] = useState("");
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const userInfo = localStorage.getItem("gsfUserInfo");
-  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
-  const accountName = parsedUserInfo?.accountName;
 
   const navigate = useNavigate();
 
   /** ---------------------------
    * Domain state (hooks)
    ---------------------------- */
-  const { session } = useAuth();
+  const { session, userInfo } = useAuth();
+  const accountName = userInfo?.accountName;
 
   const {
     items,
@@ -43,14 +41,15 @@ export default function LootGrid() {
     loadHotFinds,
   } = useFinds();
 
-  const { reactions, loadReactions, saveReaction } = useReactions();
+  const { reactions, loadReactions, saveReaction, removeReaction } =
+    useReactions();
 
   /** ---------------------------
    * Initial load (finds + reactions)
    ---------------------------- */
 
   useEffect(() => {
-    if (!session || !parsedUserInfo || !accountName) {
+    if (!session || !userInfo || !accountName) {
       navigate("/");
     }
     if (!session?.gsfGroupId) return;
@@ -118,6 +117,7 @@ export default function LootGrid() {
             isHot={true}
             itemReactions={reactions[item.id]}
             saveReaction={saveReaction}
+            removeReaction={removeReaction}
             showDeleteModal={setShowDeleteModal}
             setItemToDelete={setFindIdToDelete}
             setClickedImage={setClickedImage}
@@ -131,6 +131,7 @@ export default function LootGrid() {
             isHot={false}
             itemReactions={reactions[item.id]}
             saveReaction={saveReaction}
+            removeReaction={removeReaction}
             showDeleteModal={setShowDeleteModal}
             setItemToDelete={setFindIdToDelete}
             setClickedImage={setClickedImage}

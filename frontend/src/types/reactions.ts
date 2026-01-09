@@ -7,6 +7,13 @@ export type ReactionRow = {
   createdAt: string;
 };
 
+export type DeleteReactionRequest = {
+  gsfGroupId: string;
+  findId: string;
+  accountName: string;
+  emoji: string;
+};
+
 export type ReactionEntry = {
   count: number;
   accounts: string[];
