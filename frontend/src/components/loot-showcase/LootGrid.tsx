@@ -22,9 +22,6 @@ export default function LootGrid() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [findIdToDelete, setFindIdToDelete] = useState("");
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  // const userInfo = localStorage.getItem("gsfUserInfo");
-  // const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
-  // const accountName = parsedUserInfo?.accountName;
 
   const navigate = useNavigate();
 

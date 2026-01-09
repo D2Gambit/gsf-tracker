@@ -1,7 +1,11 @@
 import { useState } from "react";
-import type { ReactionMap } from "../types/reactions";
+import type { DeleteReactionRequest, ReactionMap } from "../types/reactions";
 import { buildReactionMap } from "../utils/reactions";
-import { fetchFindReactions, createReaction, deleteReaction } from "../api/reactions.api";
+import {
+  fetchFindReactions,
+  createReaction,
+  deleteReaction,
+} from "../api/reactions.api";
 import { toast } from "react-toastify";
 
 export function useReactions() {
@@ -49,12 +53,7 @@ export function useReactions() {
     }
   }
 
-  async function removeReaction(data: {
-    gsfGroupId: string;
-    findId: string;
-    accountName: string;
-    emoji: string;
-  }) {
+  async function removeReaction(data: DeleteReactionRequest) {
     try {
       setReactions((prev) => {
         const currentFind = prev[data.findId];

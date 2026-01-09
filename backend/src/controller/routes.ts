@@ -121,7 +121,7 @@ api.post("/create-reaction", async (c) => {
   }
 });
 
-api.post("/delete-reaction", async (c) => {
+api.delete("/delete-reaction", async (c) => {
   const body = await c.req.parseBody();
 
   try {

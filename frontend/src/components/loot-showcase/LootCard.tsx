@@ -1,5 +1,8 @@
 import type { LootItem } from "../../types/loot";
-import type { ReactionCounts } from "../../types/reactions";
+import type {
+  DeleteReactionRequest,
+  ReactionCounts,
+} from "../../types/reactions";
 import { Calendar, Trash2 } from "lucide-react";
 import ReactionBar from "./ReactionBar";
 import { useAuth } from "../../../AuthContext";
@@ -23,12 +26,7 @@ type LootCardProps = {
     accountName: string;
     emoji: string;
   }) => Promise<void>;
-  removeReaction: (data: {
-    gsfGroupId: string;
-    findId: string;
-    accountName: string;
-    emoji: string;
-  }) => Promise<void>;
+  removeReaction: (data: DeleteReactionRequest) => Promise<void>;
   showDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
   setItemToDelete: React.Dispatch<React.SetStateAction<string>>;
   setClickedImage: React.Dispatch<React.SetStateAction<string>>;
