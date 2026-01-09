@@ -67,9 +67,7 @@ export default function SignUp() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 2;
 
-  const { session } = useAuth();
-  const userInfo = localStorage.getItem("gsfUserInfo");
-  const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
+  const { session, selectUser, userInfo } = useAuth();
 
   const navigate = useNavigate();
 
@@ -77,7 +75,6 @@ export default function SignUp() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
     trigger,
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
@@ -120,18 +117,17 @@ export default function SignUp() {
 
       toast.success("Account added to GSF!");
       const resData = await res.json();
-      localStorage.setItem(
-        "gsfUserInfo",
-        JSON.stringify({
-          gsfGroupId: session.gsfGroupId,
-          role:
-            sessionStorage.getItem("groupOrganizer") === "true"
-              ? "organizer"
-              : "member",
-          accountName: data.accountName,
-          userInfo: resData,
-        })
-      );
+
+      selectUser({
+        gsfGroupId: session.gsfGroupId,
+        role:
+          sessionStorage.getItem("groupOrganizer") === "true"
+            ? "organizer"
+            : "member",
+        accountName: data.accountName,
+        userInfo: resData,
+      });
+
       navigate("/");
     } catch (error) {
       toast.error("Sign up failed. Please try again.");
@@ -355,7 +351,7 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-zinc-800 flex flex-col">
-      {parsedUserInfo && <Header />}
+      {userInfo && <Header />}
 
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-md w-full space-y-8">
