@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Users, LogOut } from "lucide-react";
+import { Menu, X, CircleUser } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
 import {} from "react-router-dom";
@@ -12,7 +12,7 @@ const Header = () => {
 
   const navigate = useNavigate();
 
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, userInfo } = useAuth();
 
   const navigation = [
     { name: "Group Organizer", href: "/" },
@@ -73,10 +73,17 @@ const Header = () => {
           {isAuthenticated && (
             <button
               onClick={handleLogout}
+              title="Logout"
               className="flex justify-center items-center px-3 py-2 text-sm font-medium text-zinc-800 hover:text-red-600"
             >
-              <LogOut className="pr-1 h-6 w-6" />
-              Logout
+              <CircleUser className="h-6 w-6 mr-1.5" />
+              {userInfo ? (
+                <span className="mr-2 font-bold">
+                  Logout ({userInfo.accountName})
+                </span>
+              ) : (
+                <span className="mr-2">Logout</span>
+              )}
             </button>
           )}
 
