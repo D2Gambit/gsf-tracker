@@ -79,6 +79,7 @@ export default function HaveItemForm({
                 let nameVal = "";
                 let qualityVal = parsedItem.quality ?? prev?.quality ?? "";
 
+                // determine the item name and quality
                 if (isMaterial) {
                   // material: use type as name and tag as Materials
                   nameVal = String(parsedItem.type ?? "");
@@ -88,24 +89,6 @@ export default function HaveItemForm({
                   nameVal =
                     parsedItem.name +
                     (parsedItem.type ? " - " + parsedItem.type : "");
-                  if (
-                    parsedItem.name === "Hellfire Torch" &&
-                    parsedItem.stats?.length > 0
-                  ) {
-                    nameVal =
-                      parsedItem.name +
-                      (parsedItem.type ? " - " + parsedItem.type : "");
-                    parsedItem.stats = parsedItem.stats.map((stat) => {
-                      if (stat.skill) {
-                        return {
-                          name: stat.skill,
-                          value: stat.value,
-                        };
-                      }
-
-                      return stat;
-                    });
-                  }
                 } else {
                   if (parsedItem.name) {
                     nameVal =
@@ -117,6 +100,20 @@ export default function HaveItemForm({
                     nameVal = prev.name ?? "";
                   }
                   qualityVal = parsedItem.quality ?? prev.quality ?? "";
+                }
+
+                // modify the stat "to Amazon Skill Levels" to use the stat.skill value instead
+                if (parsedItem.stats?.length > 0) {
+                  parsedItem.stats = parsedItem.stats.map((stat) => {
+                    if (stat.skill) {
+                      return {
+                        name: stat.skill,
+                        value: stat.value,
+                      };
+                    }
+
+                    return stat;
+                  });
                 }
 
                 return {
