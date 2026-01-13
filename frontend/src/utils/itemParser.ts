@@ -75,6 +75,7 @@ export const parseItemText = (
         // Fix Corrupted flag missing on a stat for certain items.
         // Determine if the stat range is above the max value for the item
         if (
+          (parsedItem.quality === "Unique" || parsedItem.quality === "Set") &&
           stat.range &&
           typeof stat.range.max === "number" &&
           typeof stat.value === "number"
