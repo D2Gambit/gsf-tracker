@@ -61,6 +61,7 @@ export type ParsedItem = {
     name: string;
     value?: string | number | any;
   }[];
+  corrupted?: boolean;
 };
 
 export type AddHaveItemRequest = {

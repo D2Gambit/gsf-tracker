@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Upload } from "lucide-react";
-import UploadLootForm from "./UploadLootForm";
+import ItemEntryModal, { type ItemFormData } from "../ItemEntryModal";
 import ImageModal from "../ImageModal";
-import ImageTooltip from "../ImageTooltip";
 import LootCard from "./LootCard";
 import { removeHotItems } from "../../utils/sorting";
 import { useAuth } from "../../../AuthContext";
@@ -11,6 +10,9 @@ import { useReactions } from "../../hooks/useReactions";
 import { useNavigate } from "react-router-dom";
 import { deleteFind } from "../../api/finds.api";
 import DeleteModal from "../DeleteModal";
+
+// Prevents the form from resetting on every keystroke
+const EMPTY_INITIAL_VALUES = {};
 
 export default function LootGrid() {
   /** ---------------------------
@@ -93,6 +95,18 @@ export default function LootGrid() {
     setItems(items.filter((item) => item.id !== findId));
   };
 
+  const handleUploadSubmit = async (formData: ItemFormData) => {
+    await saveFind({
+      name: formData.name,
+      // We assume image is present or handled by the API if null,
+      // strict null checks might require formData.image! if your type mandates it
+      image: formData.image!,
+      description: formData.description,
+      gsfGroupId: session?.gsfGroupId ?? "Unknown",
+      quality: formData.quality,
+    });
+  };
+
   return (
     <section className="bg-zinc-300 rounded-lg border border-gray-200 p-6">
       <div className="flex justify-between items-center mb-6">
@@ -147,10 +161,12 @@ export default function LootGrid() {
       )}
 
       {isModalOpen && (
-        <UploadLootForm
+        <ItemEntryModal
           isModalOpen={isModalOpen}
-          setIsModalOpen={setIsModalOpen}
-          saveFind={saveFind}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleUploadSubmit}
+          mode="loot"
+          initialValues={EMPTY_INITIAL_VALUES}
         />
       )}
 

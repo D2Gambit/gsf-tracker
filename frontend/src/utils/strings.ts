@@ -52,15 +52,28 @@ export function determineIfMaterial(parsedItem: {
   const qty = Number(parsedItem.quantity);
   const name = parsedItem.name;
 
+  // If the parsed item does NOT have a "name" field, and has a "quantity" field which is a number between 1 and 50, the item is a material
   return !name && !Number.isNaN(qty) && qty >= 1 && qty <= 50;
 }
 
-// detect if the parsed item is a material
+// detect if the parsed item is a charm
 export function determineIfCharm(parsedItem: { name: string; type: string }) {
   if (!parsedItem) return false;
 
   const type = parsedItem.type;
   const name = parsedItem.name;
 
+  // If the parsed item has a "name" field and a "type" field that includes the word "Charm", the item is a charm
   return name && type && type.includes("Charm");
+}
+
+// detect if the parsed item is a map
+export function determineIfMap(parsedItem: { name: string; type: string }) {
+  if (!parsedItem) return false;
+
+  const type = parsedItem.type;
+  const name = parsedItem.name;
+
+  // If the parsed item has a "name" field and a "type" field that includes the word "Map", the item is a map
+  return name && type && type.includes("Map");
 }
