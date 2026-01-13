@@ -3,7 +3,7 @@ import type { HaveFilters, TabKey } from "../types/list";
 import { Plus, Package } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import HaveItemForm from "../components/have-list/HaveItemForm";
+import HaveItemController from "../components/have-list/HaveItemController";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
 import ItemModal from "../components/ItemModal";
@@ -281,7 +281,7 @@ export default function HaveList() {
           )}
 
           {isAddItemModalOpen && (
-            <HaveItemForm
+            <HaveItemController
               isAddItemModalOpen={isAddItemModalOpen}
               setIsAddItemModalOpen={setIsAddItemModalOpen}
               editItem={currentItem}

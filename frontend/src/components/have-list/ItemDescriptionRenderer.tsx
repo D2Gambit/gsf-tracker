@@ -63,13 +63,14 @@ export default function ItemDescriptionRenderer({
     // already-parsed payload
     const parsedItem = description as ParsedItem;
     parsedName = parsedItem.name;
-    let foundCorrupt = false;
+    let foundCorrupt = !!parsedItem.corrupted;
 
     parts = (parsedItem.stats || [])
       .map((stat) => {
         if (!stat?.name) return undefined;
         const name = String(stat.name);
         // detect corrupt/evil force lines but don't emit them now
+        // This logic is moved to itemParser.ts, but is kept here for backwards compatibility
         if (name.includes("Corrupt") || name.includes("evil force")) {
           foundCorrupt = true;
           return undefined;
