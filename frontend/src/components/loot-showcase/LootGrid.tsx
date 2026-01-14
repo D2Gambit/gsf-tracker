@@ -10,6 +10,8 @@ import { useReactions } from "../../hooks/useReactions";
 import { useNavigate } from "react-router-dom";
 import { deleteFind } from "../../api/finds.api";
 import DeleteModal from "../DeleteModal";
+import type { AddHaveItemRequest } from "../../types/list";
+import { useHaves } from "../../hooks/useHaves";
 
 // Prevents the form from resetting on every keystroke
 const EMPTY_INITIAL_VALUES = {};
@@ -42,6 +44,8 @@ export default function LootGrid() {
     saveFind,
     loadHotFinds,
   } = useFinds();
+
+  const { addHaveItem } = useHaves();
 
   const { reactions, loadReactions, saveReaction, removeReaction } =
     useReactions();
@@ -96,6 +100,9 @@ export default function LootGrid() {
   };
 
   const handleUploadSubmit = async (formData: ItemFormData) => {
+    const gsfGroupId = session?.gsfGroupId ?? "Unknown";
+
+    // Submit to Loot Showcase
     await saveFind({
       name: formData.name,
       // We assume image is present or handled by the API if null,
@@ -105,6 +112,29 @@ export default function LootGrid() {
       gsfGroupId: session?.gsfGroupId ?? "Unknown",
       quality: formData.quality,
     });
+
+    // Conditional: Also submit to Have List
+    if (formData.addToBoth) {
+      try {
+        const haveReq: AddHaveItemRequest = {
+          image: formData.image!,
+          gsfGroupId: gsfGroupId.toString(),
+          name: formData.name,
+          description: formData.description,
+          foundBy: accountName || "Unknown",
+          quality: formData.quality ? formData.quality : "No Quality",
+          // Loot form doesn't have 'location' field, so we default it here
+          // CHANGE LATER
+          location: "Loot Drop",
+          isReserved: "false",
+          reservedBy: "",
+        };
+
+        await addHaveItem(haveReq, "");
+      } catch (err) {
+        console.error("Failed to cross-post to Have List", err);
+      }
+    }
   };
 
   return (
