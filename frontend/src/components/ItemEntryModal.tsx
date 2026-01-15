@@ -9,6 +9,7 @@ export type ItemFormData = {
   image: File | null;
   location: string;
   isMap: boolean;
+  addToBoth: boolean;
 };
 
 interface ItemEntryModalProps {
@@ -36,10 +37,16 @@ export default function ItemEntryModal({
     image: null,
     location: "",
     isMap: false,
+    addToBoth: false,
     ...initialValues, // Override defaults with initial values (for editing)
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Determine if we are editing a Have List item.
+  // We check for an ID (standard) or if 'name' is populated
+  const isEdit =
+    mode === "have" && (!!(initialValues as any)?.id || !!initialValues?.name);
 
   // Reset form when modal opens/closes or initialValues change
   useEffect(() => {
@@ -51,6 +58,7 @@ export default function ItemEntryModal({
         image: null,
         location: "",
         isMap: false,
+        addToBoth: false,
         ...initialValues,
       });
     }
@@ -106,6 +114,10 @@ export default function ItemEntryModal({
   // Determine Default Title
   const displayTitle =
     title ?? (mode === "loot" ? "Upload New Find" : "Add Have Item");
+
+  // Determine the label for the switch based on current mode
+  const switchLabel =
+    mode === "loot" ? 'Also add to "Have List"' : 'Also add to "Loot Showcase"';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -189,6 +201,31 @@ export default function ItemEntryModal({
           />
         )}
 
+        {/* Cross-Post Toggle Switch */}
+        {!isEdit && (
+          <div className="flex items-center mb-6 pt-2 border-t border-zinc-700">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={form.addToBoth}
+              onClick={() => setForm({ ...form, addToBoth: !form.addToBoth })}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-zinc-800 ${
+                form.addToBoth ? "bg-red-600" : "bg-zinc-600"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  form.addToBoth ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+            <span className="ml-3 text-sm font-medium text-zinc-300">
+              {switchLabel}
+            </span>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex justify-end space-x-3">
           <button
@@ -212,7 +249,7 @@ export default function ItemEntryModal({
             ) : // Logic for button text based on mode and if existing ID is present (passed via initialValues)
             mode === "loot" ? (
               "Confirm Upload"
-            ) : (initialValues as any)?.id ? ( // Checking if it's an edit
+            ) : isEdit ? ( // Checking if it's an edit
               "Edit Have Item"
             ) : (
               "Add Have Item"

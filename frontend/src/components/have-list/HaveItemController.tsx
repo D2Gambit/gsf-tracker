@@ -2,6 +2,7 @@ import React from "react";
 import { useAuth } from "../../../AuthContext";
 import type { AddHaveItemRequest } from "../../types/list";
 import ItemEntryModal, { type ItemFormData } from "../ItemEntryModal";
+import { useFinds } from "../../hooks/useFinds";
 
 export default function HaveItemController({
   isAddItemModalOpen,
@@ -19,6 +20,8 @@ export default function HaveItemController({
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
+  const { saveFind } = useFinds();
+
   const initialValues: Partial<ItemFormData> = editItem?.name
     ? {
         name: editItem.name,
@@ -30,6 +33,8 @@ export default function HaveItemController({
     : {};
 
   const handleFormSubmit = async (formData: ItemFormData) => {
+    const gsfGroupId = session?.gsfGroupId?.toString() || "Unknown";
+
     const req: AddHaveItemRequest = {
       image: formData.image!,
       gsfGroupId: session?.gsfGroupId?.toString() || "Unknown",
@@ -43,6 +48,21 @@ export default function HaveItemController({
     };
 
     await addHaveItem(req, editItem.id);
+
+    // Conditional: Also submit to Loot Showcase
+    if (formData.addToBoth && !editItem.id) {
+      try {
+        await saveFind({
+          name: formData.name,
+          image: formData.image!,
+          description: formData.description,
+          gsfGroupId: gsfGroupId,
+          quality: formData.quality,
+        });
+      } catch (err) {
+        console.error("Failed to cross-post to Loot Showcase", err);
+      }
+    }
 
     // The Modal handles its own loading state, but we close it via the prop
     setIsAddItemModalOpen(false);
