@@ -16,6 +16,9 @@ import { useHaves } from "../../hooks/useHaves";
 // Prevents the form from resetting on every keystroke
 const EMPTY_INITIAL_VALUES = {};
 
+// Prevents the form from resetting on every keystroke
+const EMPTY_INITIAL_VALUES = {};
+
 export default function LootGrid() {
   /** ---------------------------
        * Local UI state
