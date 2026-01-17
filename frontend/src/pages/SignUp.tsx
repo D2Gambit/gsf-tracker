@@ -8,6 +8,7 @@ import Footer from "../components/Footer";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
 import { useNavigate } from "react-router-dom";
+import { classes, timezones } from "../types/list";
 
 const signUpSchema = z.object({
   hasPlayedGsf: z.enum(["true", "false"], {
@@ -25,43 +26,6 @@ const signUpSchema = z.object({
 
 type SignUpForm = z.infer<typeof signUpSchema>;
 
-const classes = [
-  "Amazon",
-  "Assassin",
-  "Barbarian",
-  "Druid",
-  "Necromancer",
-  "Paladin",
-  "Sorceress",
-];
-
-const timezones = [
-  "UTC-12:00 - Baker Island",
-  "UTC-11:00 - American Samoa",
-  "UTC-10:00 - Hawaii",
-  "UTC-09:00 - Alaska",
-  "UTC-08:00 - Pacific Time",
-  "UTC-07:00 - Mountain Time",
-  "UTC-06:00 - Central Time",
-  "UTC-05:00 - Eastern Time",
-  "UTC-04:00 - Atlantic Time",
-  "UTC-03:00 - Argentina",
-  "UTC-02:00 - South Georgia",
-  "UTC-01:00 - Azores",
-  "UTC+00:00 - London",
-  "UTC+01:00 - Central Europe",
-  "UTC+02:00 - Eastern Europe",
-  "UTC+03:00 - Moscow",
-  "UTC+04:00 - Dubai",
-  "UTC+05:00 - Pakistan",
-  "UTC+06:00 - Bangladesh",
-  "UTC+07:00 - Thailand",
-  "UTC+08:00 - China",
-  "UTC+09:00 - Japan",
-  "UTC+10:00 - Australia East",
-  "UTC+11:00 - Solomon Islands",
-  "UTC+12:00 - New Zealand",
-];
 
 export default function SignUp() {
   const [currentStep, setCurrentStep] = useState(1);

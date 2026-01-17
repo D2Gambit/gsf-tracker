@@ -32,6 +32,7 @@ import {
   deleteMember,
   getMemberByAccountName,
   getMembersByGroup,
+  updateMember,
 } from "../store/members_store.js";
 
 export const api = new Hono();
@@ -112,7 +113,7 @@ api.post("/create-reaction", async (c) => {
     if (err.message === "DUPLICATE_REACTION") {
       return c.json(
         { error: "You have already reacted with this emoji." },
-        409
+        409,
       );
     }
 
@@ -171,7 +172,7 @@ api.post("/update-is-active-need-item", async (c) => {
   const body = await c.req.parseBody();
   const result = await updateNeedItemActiveFlag(
     body.id as string,
-    (body.isActive as string) === "true"
+    (body.isActive as string) === "true",
   );
 
   return c.json(result[0]);
@@ -206,7 +207,7 @@ api.get("/have-items/:gsfGroupId", async (c) => {
     qualities,
     reservable !== undefined ? reservable === "true" : undefined,
     accountName,
-    cursor
+    cursor,
   );
 
   return c.json(result);
@@ -258,7 +259,7 @@ api.post("/reserve-have-item", async (c) => {
   const result = await updateHaveItemReservedFlag(
     body.id as string,
     (body.isReserved as string) === "true",
-    body.reservedBy as string
+    body.reservedBy as string,
   );
 
   return c.json(result[0]);
@@ -278,7 +279,7 @@ api.post("/create-group", async (c) => {
     if (err.message === "DUPLICATE_REACTION") {
       return c.json(
         { error: "GSF Group already exists! Please try again." },
-        409
+        409,
       );
     }
     console.error(err);
@@ -291,7 +292,7 @@ api.post("/change-group-password", async (c) => {
   try {
     const result = await updateGroupPassword(
       body.gsfGroupId as string,
-      body.newPassword as string
+      body.newPassword as string,
     );
 
     return c.json(result[0]);
@@ -305,7 +306,7 @@ api.post("/login", async (c) => {
   const body = await c.req.parseBody();
   const result = await validateGroupLogin(
     body.gsfGroupId as string,
-    body.password as string
+    body.password as string,
   );
 
   return c.json(result);
@@ -332,7 +333,7 @@ api.post("/create-member", async (c) => {
     if (err.message === "DUPLICATE_REACTION") {
       return c.json(
         { error: "GSF member already exists! Please try again." },
-        409
+        409,
       );
     }
     console.error(err);
@@ -354,7 +355,25 @@ api.get(`/member/:gsfGroupId/:accountName`, async (c) => {
   return c.json(
     await getMemberByAccountName(
       c.req.param("gsfGroupId"),
-      c.req.param("accountName")
-    )
+      c.req.param("accountName"),
+    ),
   );
+});
+
+api.post(`/edit-member/:gsfGroupId/:accountName`, async (c) => {
+  const body = await c.req.parseBody();
+  const result = await updateMember(
+    {
+      gsfGroupId: c.req.param("gsfGroupId"),
+      accountName: body.accountName as string,
+      characterName: body.characterName as string,
+      preferredTimezone: body.preferredTimezone as string,
+      preferredClass: body.preferredClass as string,
+      preferredSecondaryClass: body.preferredSecondaryClass as string,
+      discordName: body.discordName as string,
+    },
+    c.req.param("accountName"),
+  );
+
+  return c.json(result[0]);
 });

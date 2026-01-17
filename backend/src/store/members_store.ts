@@ -1,5 +1,5 @@
 import { db } from "../config/db.js";
-import { eq, and } from "drizzle-orm/sql/expressions/conditions";
+import { desc, eq, and } from "drizzle-orm";
 import { gsfMembers } from "../config/schema.js";
 
 export const createMember = async (data: {
@@ -27,6 +27,30 @@ export const createMember = async (data: {
   }
 };
 
+export const updateMember = async (
+  data: {
+    gsfGroupId: string;
+    accountName: string;
+    characterName: string;
+    preferredTimezone: string;
+    preferredClass: string;
+    preferredSecondaryClass: string;
+    discordName: string;
+  },
+  previousAccountName: string,
+) => {
+  return await db
+    .update(gsfMembers)
+    .set(data)
+    .where(
+      and(
+        eq(gsfMembers.gsfGroupId, data.gsfGroupId),
+        eq(gsfMembers.accountName, previousAccountName),
+      ),
+    )
+    .returning();
+};
+
 export const deleteMember = async (id: string) => {
   return db
     .delete(gsfMembers)
@@ -38,12 +62,13 @@ export const getMembersByGroup = async (gsfGroupId: string) => {
   return db
     .select()
     .from(gsfMembers)
-    .where(eq(gsfMembers.gsfGroupId, gsfGroupId));
+    .where(eq(gsfMembers.gsfGroupId, gsfGroupId))
+    .orderBy(desc(gsfMembers.role));
 };
 
 export const getMemberByAccountName = async (
   gsfGroupId: string,
-  accountName: string
+  accountName: string,
 ) => {
   return db
     .select()
@@ -51,7 +76,7 @@ export const getMemberByAccountName = async (
     .where(
       and(
         eq(gsfMembers.gsfGroupId, gsfGroupId),
-        eq(gsfMembers.accountName, accountName)
-      )
+        eq(gsfMembers.accountName, accountName),
+      ),
     );
 };
