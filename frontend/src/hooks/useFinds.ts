@@ -22,7 +22,7 @@ export function useFinds() {
       const res = await fetchFinds(
         groupId,
         9,
-        cursor ? JSON.stringify(cursor) : undefined
+        cursor ? JSON.stringify(cursor) : undefined,
       );
 
       setItems((prev) => {
@@ -55,12 +55,13 @@ export function useFinds() {
           foundBy: item.foundBy,
           imageUrl: item.imageUrl,
           createdAt: item.createdAt,
+          quality: item.quality,
         };
       });
       setHotItems(_hotItems);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Unable to fetch hot finds"
+        err instanceof Error ? err.message : "Unable to fetch hot finds",
       );
     } finally {
       setLoading(false);
@@ -73,7 +74,7 @@ export function useFinds() {
       setItems((prev) => [res, ...prev]);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Unable to upload find!"
+        err instanceof Error ? err.message : "Unable to upload find!",
       );
     }
   }

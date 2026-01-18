@@ -19,6 +19,27 @@ export function getQualityColor(quality: string) {
   }
 }
 
+export function getTitleColor(quality: string) {
+  switch (quality) {
+    case "Charms":
+      return "text-purple-800";
+    case "Materials":
+      return "text-red-500";
+    case "Normal":
+      return "text-white";
+    case "Magic":
+      return "text-blue-800";
+    case "Rare":
+      return "text-yellow-400";
+    case "Set":
+      return "text-green-800";
+    case "Unique":
+      return "text-orange-300";
+    default:
+      return "text-white";
+  }
+}
+
 // Material name arrays for color coding
 
 export const materialName = {
