@@ -142,7 +142,6 @@ export default function ItemDescriptionRenderer({
   }
 
   const actualName = itemNameProp ?? parsedName;
-  console.log("HOT ITEM QUALITY: ", actualName, quality);
   return (
     <div className={className}>
       {actualName && (
