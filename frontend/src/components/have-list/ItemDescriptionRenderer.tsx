@@ -1,5 +1,9 @@
 import type { ParsedItem } from "../../types/list";
-import { getQualityColor, materialName } from "../../utils/colors";
+import {
+  getQualityColor,
+  getTitleColor,
+  materialName,
+} from "../../utils/colors";
 import { determineIfMaterial } from "../../utils/strings";
 export type ItemLineType =
   | "header"
@@ -146,20 +150,26 @@ export default function ItemDescriptionRenderer({
             quality === "Unique"
               ? "text-orange-300"
               : isMaterial &&
-                materialName.redName.some((name) => actualName.includes(name))
-              ? "text-red-500"
-              : isMaterial &&
-                materialName.whiteName.some((name) => actualName.includes(name))
-              ? "text-white"
-              : isMaterial &&
-                materialName.tealName.some((name) => actualName.includes(name))
-              ? "text-teal-600"
-              : isMaterial &&
-                materialName.goldName.some((name) => actualName.includes(name))
-              ? "text-orange-200"
-              : isMaterial
-              ? "text-orange-400"
-              : getQualityColor(quality || "Normal")
+                  materialName.redName.some((name) => actualName.includes(name))
+                ? "text-red-500"
+                : isMaterial &&
+                    materialName.whiteName.some((name) =>
+                      actualName.includes(name),
+                    )
+                  ? "text-white"
+                  : isMaterial &&
+                      materialName.tealName.some((name) =>
+                        actualName.includes(name),
+                      )
+                    ? "text-teal-600"
+                    : isMaterial &&
+                        materialName.goldName.some((name) =>
+                          actualName.includes(name),
+                        )
+                      ? "text-orange-200"
+                      : isMaterial
+                        ? "text-orange-400"
+                        : getTitleColor(quality || "Normal")
           } `}
         >
           {actualName}
@@ -179,8 +189,8 @@ export default function ItemDescriptionRenderer({
               isCorrupted
                 ? "text-red-400 font-semibold"
                 : isMaterial
-                ? "text-gray-300"
-                : "text-blue-400"
+                  ? "text-gray-300"
+                  : "text-blue-400"
             }`}
             key={i}
           >
