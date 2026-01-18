@@ -1,29 +1,20 @@
 import { useEffect, useState } from "react";
-import { Users, UserMinus } from "lucide-react";
+import { Users, UserMinus, Edit } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthContext";
 import NewUserModal from "./NewUserModal";
 import DeleteModal from "./DeleteModal";
 import ChangeGroupPassword from "./ChangeGroupPassword";
-
-interface Player {
-  id: string;
-  gsfGroupId: string;
-  role: string;
-  accountName: string;
-  characterName: string;
-  hasPlayedGsf: boolean;
-  preferredTimezone: string;
-  preferredClass: string;
-  preferredSecondaryClass: string;
-  discordName: string;
-}
+import EditUserModal from "./EditUserModal";
+import type { Player } from "../types/list";
 
 const GroupOrganizer = () => {
   const { session } = useAuth();
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editPlayer, setEditPlayer] = useState<Player | null>(null);
+  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [playerIdToDelete, setPlayerIdToDelete] = useState("");
 
@@ -139,7 +130,7 @@ const GroupOrganizer = () => {
                       </div>
                       <span
                         className={`inline-flex items-center m-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${classColors(
-                          player.preferredClass
+                          player.preferredClass,
                         )}`}
                         title="Preferred Class"
                       >
@@ -148,7 +139,7 @@ const GroupOrganizer = () => {
                       /
                       <span
                         className={`inline-flex items-center m-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${classColors(
-                          player.preferredSecondaryClass
+                          player.preferredSecondaryClass,
                         )}`}
                         title="Secondary Class"
                       >
@@ -159,6 +150,22 @@ const GroupOrganizer = () => {
                       Discord: {player.discordName}
                     </div>
                   </div>
+
+                  {parsedUserInfo &&
+                    parsedUserInfo.accountName === player.accountName && (
+                      <button
+                        onClick={() => {
+                          setIsEditUserModalOpen(true);
+                          setEditPlayer(player);
+                        }}
+                        className="p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 rounded-lg transition-colors"
+                        title="Edit Account Info"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                    )}
+
+                  {/* DELETE BUTTON */}
                   {(() => {
                     const userInfo = localStorage.getItem("gsfUserInfo");
                     const parsedUserInfo = userInfo
@@ -192,6 +199,17 @@ const GroupOrganizer = () => {
           </div>
         </div>
       </div>
+
+      {isEditUserModalOpen && session?.gsfGroupId && (
+        <EditUserModal
+          setIsEditUserModalOpen={setIsEditUserModalOpen}
+          editingPlayer={editPlayer}
+          existingPlayers={players}
+          setExistingPlayers={setPlayers}
+          gsfGroupId={session.gsfGroupId}
+        />
+      )}
+
       {isModalOpen && session?.gsfGroupId && (
         <NewUserModal
           setIsModalOpen={setIsModalOpen}
