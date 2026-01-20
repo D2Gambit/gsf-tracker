@@ -1,4 +1,4 @@
-import ItemDescriptionRenderer from "../components/have-list/ItemDescriptionRenderer";
+import ItemDescriptionRenderer from "./have-list/ItemDescriptionRenderer";
 import type { ParsedItem } from "../types/list";
 
 interface Props {

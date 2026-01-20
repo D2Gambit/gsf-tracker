@@ -44,7 +44,7 @@ export default function ItemDescriptionRenderer({
     );
   }
 
-  let parts: string[] = [];
+  let parts: { text: string; className: string }[] = [];
   let parsedName: string | undefined;
   let isMaterial = false;
 
@@ -63,50 +63,107 @@ export default function ItemDescriptionRenderer({
       .join(" ");
   };
 
+  const getLineClassName = (
+    text: string,
+    lineQuality?: string,
+    isLineCorrupted?: boolean,
+    isMat?: boolean
+  ) => {
+    // If a specified quality is provided (e.g. for socketed item headers), use it
+    if (lineQuality) return getTitleColor(lineQuality);
+
+    // Corrupted logic (explicit flag or text detection)
+    if (isLineCorrupted || text === "Corrupted" || text.includes("*")) {
+      return "text-red-400 font-semibold";
+    }
+
+    if (isMat) {
+      return "text-gray-300";
+    }
+
+    return "text-blue-400";
+  };
+
   if (typeof description === "object" && !Array.isArray(description)) {
     // already-parsed payload
     const parsedItem = description as ParsedItem;
     parsedName = parsedItem.name;
     let foundCorrupt = !!parsedItem.corrupted;
 
-    parts = (parsedItem.stats || [])
-      .map((stat) => {
-        if (!stat?.name) return undefined;
-        const name = String(stat.name);
-        // detect corrupt/evil force lines but don't emit them now
-        // This logic is moved to itemParser.ts, but is kept here for backwards compatibility
-        if (name.includes("Corrupt") || name.includes("evil force")) {
-          foundCorrupt = true;
-          return undefined;
-        }
-        const valStr = safeValueToString(stat.value);
-        let line = [valStr, name].filter(Boolean).join(" ");
-        if (stat.corrupted) {
-          line += "*";
-        }
-        return line || undefined;
-      })
-      .filter(Boolean) as string[];
+    const stats = parsedItem.stats || [];
 
-    // append single "Corrupted Item" line at the end if any corrupt lines were detected
+    stats.forEach((stat: any) => {
+      if (!stat?.name) return;
+      const name = String(stat.name);
+
+      // detect corrupt/evil force lines but don't emit them now
+      // This logic is moved to itemParser.ts, but is kept here for backwards compatibility
+      if (name.includes("Corrupt") || name.includes("evil force")) {
+        foundCorrupt = true;
+        return;
+      }
+
+      const valStr = safeValueToString(stat.value);
+      let line = [valStr, name].filter(Boolean).join(" ");
+
+      if (stat.corrupted) {
+        line += "*";
+      }
+
+      if (line) {
+        parts.push({
+          text: line,
+          className: getLineClassName(
+            line,
+            stat.quality,
+            stat.corrupted,
+            false
+          ),
+        });
+      }
+    });
+
+    // append single "Corrupted Item" line at the start if any corrupt lines were detected
     if (foundCorrupt) {
-      parts.unshift("Corrupted");
+      parts.unshift({
+        text: "Corrupted",
+        className: "text-red-400 font-semibold",
+      });
     }
-  } else if (Array.isArray(description)) {
-    parts = description;
   } else {
-    const itemStats = description.trim();
+    // Legacy String / Array Handling
+    let rawStrings: string[] = [];
 
-    try {
-      const parsed = JSON.parse(itemStats);
-      isMaterial = determineIfMaterial(parsed);
-      if (isMaterial) {
-        parsedName = parsed.type ?? parsed.name ?? undefined;
-        const p: string[] = [];
-        p.push(`Quantity: ${parsed.quantity}`);
-        parts = p;
-      } else {
-        parts = itemStats
+    if (Array.isArray(description)) {
+      rawStrings = description;
+    } else {
+      const itemStats = description.trim();
+
+      try {
+        const parsed = JSON.parse(itemStats);
+        isMaterial = determineIfMaterial(parsed);
+        if (isMaterial) {
+          parsedName = parsed.type ?? parsed.name ?? undefined;
+          rawStrings.push(`Quantity: ${parsed.quantity}`);
+        } else {
+          rawStrings = itemStats
+            .split(/,(?![^(]*\))/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+          if (itemStats.includes("\n")) {
+            const lines = itemStats
+              .split("\n")
+              .map((s) => s.trim())
+              .filter(Boolean);
+            if (lines.length > 1) {
+              parsedName = lines[0];
+              rawStrings = lines.slice(1);
+            }
+          }
+        }
+      } catch {
+        rawStrings = itemStats
           .split(/,(?![^(]*\))/)
           .map((s) => s.trim())
           .filter(Boolean);
@@ -118,30 +175,21 @@ export default function ItemDescriptionRenderer({
             .filter(Boolean);
           if (lines.length > 1) {
             parsedName = lines[0];
-            parts = lines.slice(1);
+            rawStrings = lines.slice(1);
           }
         }
       }
-    } catch {
-      parts = itemStats
-        .split(/,(?![^(]*\))/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-      if (itemStats.includes("\n")) {
-        const lines = itemStats
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean);
-        if (lines.length > 1) {
-          parsedName = lines[0];
-          parts = lines.slice(1);
-        }
-      }
     }
+
+    // Convert raw strings to RenderParts
+    parts = rawStrings.map((s) => ({
+      text: s,
+      className: getLineClassName(s, undefined, undefined, isMaterial),
+    }));
   }
 
   const actualName = itemNameProp ?? parsedName;
+
   return (
     <div className={className}>
       {actualName && (
@@ -150,26 +198,20 @@ export default function ItemDescriptionRenderer({
             quality === "Unique"
               ? "text-orange-300"
               : isMaterial &&
-                  materialName.redName.some((name) => actualName.includes(name))
-                ? "text-red-500"
-                : isMaterial &&
-                    materialName.whiteName.some((name) =>
-                      actualName.includes(name),
-                    )
-                  ? "text-white"
-                  : isMaterial &&
-                      materialName.tealName.some((name) =>
-                        actualName.includes(name),
-                      )
-                    ? "text-teal-600"
-                    : isMaterial &&
-                        materialName.goldName.some((name) =>
-                          actualName.includes(name),
-                        )
-                      ? "text-orange-200"
-                      : isMaterial
-                        ? "text-orange-400"
-                        : getTitleColor(quality || "Normal")
+                materialName.redName.some((name) => actualName.includes(name))
+              ? "text-red-500"
+              : isMaterial &&
+                materialName.whiteName.some((name) => actualName.includes(name))
+              ? "text-white"
+              : isMaterial &&
+                materialName.tealName.some((name) => actualName.includes(name))
+              ? "text-teal-600"
+              : isMaterial &&
+                materialName.goldName.some((name) => actualName.includes(name))
+              ? "text-orange-200"
+              : isMaterial
+              ? "text-orange-400"
+              : getTitleColor(quality || "Normal")
           } `}
         >
           {actualName}
@@ -180,24 +222,14 @@ export default function ItemDescriptionRenderer({
           Found by: {foundBy}
         </div>
       )}
-      {parts.map((part, i) => {
-        let isCorrupted = false;
-        if (part === "Corrupted" || part.includes("*")) isCorrupted = true;
-        return (
-          <div
-            className={`text-center mb-0.5 drop-shadow-[1px_1px_1px_black] ${
-              isCorrupted
-                ? "text-red-400 font-semibold"
-                : isMaterial
-                  ? "text-gray-300"
-                  : "text-blue-400"
-            }`}
-            key={i}
-          >
-            {part}
-          </div>
-        );
-      })}
+      {parts.map((part, i) => (
+        <div
+          className={`text-center mb-0.5 drop-shadow-[1px_1px_1px_black] ${part.className}`}
+          key={i}
+        >
+          {part.text}
+        </div>
+      ))}
     </div>
   );
 }

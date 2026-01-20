@@ -390,6 +390,7 @@ export const parseItemText = (
     let nameVal = "";
     let qualityVal = parsedItem.quality ?? currentQuality ?? "";
     let isCorrupted = false;
+    let isDesecrated = false;
     let corruptionStatFound = false;
 
     // determine the item name and quality
@@ -402,7 +403,11 @@ export const parseItemText = (
       nameVal =
         parsedItem.name + (parsedItem.type ? " - " + parsedItem.type : "");
     } else {
-      if (parsedItem.name) {
+      if (parsedItem.runeword) {
+        nameVal =
+          parsedItem.runeword +
+          (parsedItem.type ? " - " + parsedItem.type : "");
+      } else if (parsedItem.name) {
         nameVal =
           parsedItem.name + (parsedItem.type ? " - " + parsedItem.type : "");
       } else if (parsedItem.type) {
@@ -414,6 +419,10 @@ export const parseItemText = (
     }
 
     if (parsedItem.stats?.length > 0) {
+      // Check for generic ED stat to determine if we should hide 17/18
+      const hasGenericED = parsedItem.stats.some(
+        (s: any) => s.name === "% Enhanced Damage"
+      );
       // Filter out garbage data from the JSON and flag if the item is corrupted
       parsedItem.stats = parsedItem.stats.filter((stat: any) => {
         const name = String(stat.name || "");
@@ -422,9 +431,14 @@ export const parseItemText = (
           isCorrupted = true;
           return false;
         }
+        // Handle Desecrated items
+        if (stat.stat_id === 206 || name.includes("Desecrated")) {
+          isDesecrated = true;
+          return false;
+        }
         // Remove redundant Enhanced Maximum (17) and Minimum (18) Damage
-        // These are usually calculation helpers for the main "Enhanced Damage" stat
-        if (stat.stat_id === 17 || stat.stat_id === 18) {
+        // Only if we have a generic stat that covers this (e.g. on Weapons)
+        if ((stat.stat_id === 17 || stat.stat_id === 18) && hasGenericED) {
           return false;
         }
         return true;
@@ -453,6 +467,13 @@ export const parseItemText = (
         parsedItem.stats,
         [39, 41, 43, 45],
         (val) => `All Resistances +${val}`
+      );
+
+      // Enhanced Damage: Min(17), Max(18) (For non-weapons like Amulets/Jewels)
+      parsedItem.stats = consolidateStats(
+        parsedItem.stats,
+        [17, 18],
+        (val) => `+${val}% Enhanced Damage`
       );
 
       // Physical Damage: Min(21), Max(22)
@@ -505,6 +526,17 @@ export const parseItemText = (
         }
         return true;
       });
+
+      // Add Desecrated line if applicable (Before main formatting loop to preserve order)
+      // We add it to the TOP of the stats so it appears below the "Corrupted" header (which is usually separate)
+      if (isDesecrated) {
+        parsedItem.stats.unshift({
+          name: "Desecrated",
+          value: null,
+          stat_id: -999,
+          quality: "Unique", // Colors the "Desecrated" line
+        });
+      }
 
       // --- Main Formatting Loop ---
       parsedItem.stats = parsedItem.stats.map((stat: any) => {
@@ -581,6 +613,116 @@ export const parseItemText = (
         stat_id: -999,
         ...(socketsAreCorrupted ? { corrupted: 1 } : {}),
       });
+
+      // --- Process Filled Sockets ---
+      if (parsedItem.socketed && Array.isArray(parsedItem.socketed)) {
+        parsedItem.socketed.forEach((sockItem: any) => {
+          // Add a spacer/header line for the socketed item
+          parsedItem.stats.push({
+            name: " ", // spacer
+            value: null,
+            stat_id: -999,
+          });
+
+          // Add Item Name Header
+          parsedItem.stats.push({
+            name: sockItem.name || sockItem.type,
+            value: null,
+            quality: sockItem.quality, // pass quality so frontend can color it
+            stat_id: -999,
+          });
+
+          if (sockItem.stats) {
+            let sockStats = [...sockItem.stats];
+
+            // Filter junk
+            sockStats = sockStats.filter((stat: any) => {
+              if (
+                stat.stat_id === 59 ||
+                (stat.name && stat.name.includes("evil force"))
+              )
+                return false;
+              return true;
+            });
+
+            // Consolidate Stats
+            sockStats = consolidateStats(
+              sockStats,
+              [17, 18], // Enhanced Max(17), Min(18)
+              (val) => `+${val}% Enhanced Damage`
+            );
+            sockStats = consolidateStats(
+              sockStats,
+              [0, 1, 2, 3],
+              (val) => `+${val} to all Attributes`
+            );
+            sockStats = consolidateStats(
+              sockStats,
+              [39, 41, 43, 45],
+              (val) => `All Resistances +${val}`
+            );
+            sockStats = consolidateRangeStats(
+              sockStats,
+              21,
+              22,
+              (min, max) => `Adds ${min}-${max} Damage`
+            );
+            sockStats = consolidateRangeStats(
+              sockStats,
+              48,
+              49,
+              (min, max) => `Adds ${min}-${max} Fire Damage`
+            );
+            sockStats = consolidateRangeStats(
+              sockStats,
+              50,
+              51,
+              (min, max) => `Adds ${min}-${max} Lightning Damage`
+            );
+            sockStats = consolidateRangeStats(
+              sockStats,
+              54,
+              55,
+              (min, max) => `Adds ${min}-${max} Cold Damage`
+            );
+
+            // Formatting
+            sockStats = sockStats.map((stat: any) => {
+              // If already consolidated, pass through (consolidateStats uses string IDs)
+              if (
+                stat.stat_id === -999 ||
+                typeof stat.stat_id === "string" ||
+                stat.stat_id === "consolidated"
+              ) {
+                // Ensure it has the -999 ID for the main list consistency
+                return { ...stat, stat_id: -999 };
+              }
+
+              if (stat.skill) {
+                return {
+                  name: `+${stat.value} to ${stat.skill}`,
+                  value: null,
+                  skill: stat.skill,
+                  stat_id: -999,
+                };
+              }
+
+              const formattedName = getStatDescription(stat);
+              if (formattedName) {
+                return {
+                  name: formattedName,
+                  value: null,
+                  stat_id: -999,
+                };
+              }
+              return { ...stat, stat_id: -999 };
+            });
+
+            // Append processed socket stats to main stats
+            parsedItem.stats.push(...sockStats);
+          }
+        });
+      }
     }
 
     if (isCorrupted) {
