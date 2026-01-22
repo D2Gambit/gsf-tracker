@@ -14,6 +14,7 @@ import {
   hasParsedDescription,
   normalizeDescriptionForModal,
 } from "../../utils/strings";
+import type { ModalContent } from "../../types/modal";
 
 type LootCardProps = {
   index: string;
@@ -29,7 +30,7 @@ type LootCardProps = {
   removeReaction: (data: DeleteReactionRequest) => Promise<void>;
   showDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
   setItemToDelete: React.Dispatch<React.SetStateAction<string>>;
-  setClickedImage: React.Dispatch<React.SetStateAction<string>>;
+  setModalContent: React.Dispatch<React.SetStateAction<ModalContent | null>>;
 };
 
 export default function LootCard({
@@ -41,7 +42,7 @@ export default function LootCard({
   removeReaction,
   showDeleteModal,
   setItemToDelete,
-  setClickedImage,
+  setModalContent,
 }: LootCardProps) {
   const { session, userInfo } = useAuth();
 
@@ -53,6 +54,27 @@ export default function LootCard({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleItemClicked = () => {
+    if (item.imageUrl) {
+      setModalContent({
+        type: "image",
+        imageUrl: item.imageUrl,
+      });
+      return;
+    }
+    const normalized = normalizeDescriptionForModal(
+      item.description,
+      item.name,
+    );
+    setModalContent({
+      type: "text",
+      description: normalized.description,
+      name: normalized.name ?? item.name,
+      foundBy: item.foundBy,
+      quality: item.quality as string | undefined,
+    });
   };
 
   const handleReaction = async (findId: string, emoji: string) => {
@@ -118,9 +140,7 @@ export default function LootCard({
           src={item.imageUrl}
           alt={item.name}
           className="w-full h-48 object-cover hover:cursor-pointer"
-          onClick={() => {
-            setClickedImage(item.imageUrl);
-          }}
+          onClick={handleItemClicked}
           onMouseEnter={(e) => {
             setHoveredItem(item);
             setMousePos({ x: e.clientX, y: e.clientY });
@@ -130,9 +150,7 @@ export default function LootCard({
         />
       ) : (
         <div
-          onClick={() => {
-            setClickedImage(item.imageUrl);
-          }}
+          onClick={handleItemClicked}
           onMouseEnter={(e) => {
             setHoveredItem(item);
             setMousePos({ x: e.clientX, y: e.clientY });

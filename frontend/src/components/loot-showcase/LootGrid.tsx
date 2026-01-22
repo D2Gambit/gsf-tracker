@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Upload } from "lucide-react";
 import ItemEntryModal, { type ItemFormData } from "../ItemEntryModal";
-import ImageModal from "../ImageModal";
 import LootCard from "./LootCard";
 import { removeHotItems } from "../../utils/sorting";
 import { useAuth } from "../../../AuthContext";
@@ -11,7 +10,9 @@ import { useNavigate } from "react-router-dom";
 import { deleteFind } from "../../api/finds.api";
 import DeleteModal from "../DeleteModal";
 import type { AddHaveItemRequest } from "../../types/list";
+import type { ModalContent } from "../../types/modal";
 import { useHaves } from "../../hooks/useHaves";
+import ItemModal from "../ItemModal";
 
 // Prevents the form from resetting on every keystroke
 const EMPTY_INITIAL_VALUES = {};
@@ -22,7 +23,7 @@ export default function LootGrid() {
        ---------------------------- */
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [clickedImage, setClickedImage] = useState("");
+  const [modalContent, setModalContent] = useState<ModalContent | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [findIdToDelete, setFindIdToDelete] = useState("");
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -76,7 +77,7 @@ export default function LootGrid() {
           loadFinds(session.gsfGroupId);
         }
       },
-      { threshold: 1 }
+      { threshold: 1 },
     );
 
     observer.observe(loadMoreRef.current);
@@ -91,7 +92,7 @@ export default function LootGrid() {
 
   const removedHotItemsList = useMemo(
     () => removeHotItems(items, hotItems),
-    [items, hotItems]
+    [items, hotItems],
   );
 
   const handleDelete = (findId: string) => {
@@ -164,7 +165,7 @@ export default function LootGrid() {
             removeReaction={removeReaction}
             showDeleteModal={setShowDeleteModal}
             setItemToDelete={setFindIdToDelete}
-            setClickedImage={setClickedImage}
+            setModalContent={setModalContent}
           />
         ))}
         {removedHotItemsList.map((item, i) => (
@@ -178,15 +179,15 @@ export default function LootGrid() {
             removeReaction={removeReaction}
             showDeleteModal={setShowDeleteModal}
             setItemToDelete={setFindIdToDelete}
-            setClickedImage={setClickedImage}
+            setModalContent={setModalContent}
           />
         ))}
       </div>
 
-      {clickedImage && (
-        <ImageModal
-          imageUrl={clickedImage}
-          onClose={() => setClickedImage("")}
+      {modalContent && (
+        <ItemModal
+          content={modalContent}
+          onClose={() => setModalContent(null)}
         />
       )}
 
