@@ -14,6 +14,7 @@ const editPlayerSchema = z.object({
   timezone: z.string().min(1, "Please select a timezone"),
   primaryClass: z.string().min(1, "Please select a primary class"),
   secondaryClass: z.string().min(1, "Please select a secondary class"),
+  buildName: z.string().min(3, "Build name must be at least 3 characters"),
 });
 
 type EditPlayerForm = z.infer<typeof editPlayerSchema>;
@@ -45,6 +46,7 @@ export default function EditUserModal({
       timezone: editingPlayer?.preferredTimezone || "",
       primaryClass: editingPlayer?.preferredClass || "",
       secondaryClass: editingPlayer?.preferredSecondaryClass || "",
+      buildName: editingPlayer?.buildName || "",
     },
   });
 
@@ -60,6 +62,7 @@ export default function EditUserModal({
       formData.append("preferredClass", data.primaryClass);
       formData.append("preferredSecondaryClass", data.secondaryClass);
       formData.append("discordName", data.discordName);
+      formData.append("buildName", data.buildName);
       const res = await fetch(
         `/api/edit-member/${gsfGroupId}/${editingPlayer?.accountName}`,
         {
@@ -243,6 +246,27 @@ export default function EditUserModal({
             {errors.secondaryClass && (
               <p className="mt-1 text-sm text-red-600">
                 {errors.secondaryClass.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="buildName"
+              className="block text-sm font-medium text-gray-400 mb-2"
+            >
+              Build Name
+            </label>
+            <input
+              {...register("buildName")}
+              type="text"
+              id="buildName"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              placeholder="Your build name"
+            />
+            {errors.buildName && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.buildName.message}
               </p>
             )}
           </div>

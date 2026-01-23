@@ -35,6 +35,7 @@ export interface Player {
   preferredClass: string;
   preferredSecondaryClass: string;
   discordName: string;
+  buildName: string;
 }
 export const classes = [
   "Amazon",

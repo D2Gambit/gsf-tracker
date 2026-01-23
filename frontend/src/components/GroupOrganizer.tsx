@@ -145,6 +145,14 @@ const GroupOrganizer = () => {
                       >
                         {player.preferredSecondaryClass}
                       </span>
+                      <span
+                        className={`inline-flex items-center m-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${classColors(
+                          player.preferredClass,
+                        )}`}
+                        title="Build Name"
+                      >
+                        Build: {player.buildName}
+                      </span>
                     </div>
                     <div className="text-sm text-gray-600">
                       Discord: {player.discordName}

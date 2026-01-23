@@ -326,6 +326,7 @@ api.post("/create-member", async (c) => {
       preferredClass: body.preferredClass as string,
       preferredSecondaryClass: body.preferredSecondaryClass as string,
       discordName: body.discordName as string,
+      buildName: body.buildName as string,
     });
 
     return c.json(result[0]);
@@ -371,6 +372,7 @@ api.post(`/edit-member/:gsfGroupId/:accountName`, async (c) => {
       preferredClass: body.preferredClass as string,
       preferredSecondaryClass: body.preferredSecondaryClass as string,
       discordName: body.discordName as string,
+      buildName: body.buildName as string,
     },
     c.req.param("accountName"),
   );
