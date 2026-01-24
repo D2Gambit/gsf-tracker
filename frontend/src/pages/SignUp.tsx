@@ -22,10 +22,10 @@ const signUpSchema = z.object({
   timezone: z.string().min(1, "Please select a timezone"),
   primaryClass: z.string().min(1, "Please select a primary class"),
   secondaryClass: z.string().min(1, "Please select a secondary class"),
+  buildName: z.string().min(3, "Build name must be at least 3 characters"),
 });
 
 type SignUpForm = z.infer<typeof signUpSchema>;
-
 
 export default function SignUp() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -60,6 +60,7 @@ export default function SignUp() {
       formData.append("preferredClass", data.primaryClass);
       formData.append("preferredSecondaryClass", data.secondaryClass);
       formData.append("discordName", data.discordName);
+      formData.append("buildName", data.buildName);
       if (sessionStorage.getItem("groupOrganizer") === "true") {
         formData.append("role", "organizer");
       } else {
@@ -118,7 +119,7 @@ export default function SignUp() {
       case 1:
         return ["hasPlayedGsf", "accountName", "characterName", "discordName"];
       case 2:
-        return ["timezone", "primaryClass", "secondaryClass"];
+        return ["timezone", "primaryClass", "secondaryClass", "buildName"];
       default:
         return [];
     }
@@ -305,6 +306,27 @@ export default function SignUp() {
                 </p>
               )}
             </div>
+
+            <div>
+              <label
+                htmlFor="buildName"
+                className="block text-sm font-medium text-gray-400 mb-2"
+              >
+                Build Name
+              </label>
+              <input
+                {...register("buildName")}
+                type="textarea"
+                id="buildName"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                placeholder="Your build name"
+              />
+              {errors.buildName && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.buildName.message}
+                </p>
+              )}
+            </div>
           </div>
         );
 
@@ -335,8 +357,8 @@ export default function SignUp() {
                   step === currentStep
                     ? "bg-red-600 text-white"
                     : step < currentStep
-                    ? "bg-red-100 text-red-600"
-                    : "bg-gray-200 text-gray-500"
+                      ? "bg-red-100 text-red-600"
+                      : "bg-gray-200 text-gray-500"
                 }`}
               >
                 {step}
@@ -350,7 +372,7 @@ export default function SignUp() {
               e.preventDefault();
             }}
           >
-            {renderStep()}
+            <div key={currentStep}>{renderStep()}</div>
 
             <div className="flex justify-between space-x-4">
               {currentStep > 1 && (

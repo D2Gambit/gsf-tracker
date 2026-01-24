@@ -13,6 +13,7 @@ export const createMember = async (data: {
   preferredClass: string;
   preferredSecondaryClass: string;
   discordName: string;
+  buildName: string;
 }) => {
   try {
     const result = await db.insert(gsfMembers).values(data).returning();
@@ -36,6 +37,7 @@ export const updateMember = async (
     preferredClass: string;
     preferredSecondaryClass: string;
     discordName: string;
+    buildName: string;
   },
   previousAccountName: string,
 ) => {

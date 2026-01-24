@@ -75,5 +75,6 @@ export const gsfMembers = pgTable("gsfmembers", {
   preferredSecondaryClass: text("preferred_secondary_class")
     .notNull()
     .default("Assassin"),
+  buildName: text("build_name").notNull().default("Unknown"),
   discordName: text("discord_name").notNull(),
 });
