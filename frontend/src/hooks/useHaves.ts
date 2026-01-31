@@ -8,6 +8,7 @@ import {
 import { toast } from "react-toastify";
 import type {
   AddHaveItemRequest,
+  HaveFilters,
   HaveItem,
   TabKey,
   TabState,
@@ -48,35 +49,43 @@ export function useHaves() {
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
+  let cursorToUse: string | undefined;
+  let filtersToUse: HaveFilters | undefined;
+
   async function loadHaves(groupId: string, tab: TabKey, reset = false) {
     const state = tabData[tab];
 
-    if (!state.hasMore && !reset) return;
+    setTabData((prev) => {
+      const state = prev[tab];
+      cursorToUse = reset
+        ? undefined
+        : (JSON.stringify(state.cursor) ?? undefined);
+      filtersToUse = state.filters;
 
-    setTabData((prev) => ({
-      ...prev,
-      [tab]: {
-        ...prev[tab],
-        loading: reset,
-        loadingMore: !reset,
-      },
-    }));
+      return {
+        ...prev,
+        [tab]: {
+          ...state,
+          loading: reset,
+          loadingMore: !reset,
+        },
+      };
+    });
 
     try {
       setLoading(true);
-
       const res = await fetchHaveItems(
         groupId,
         tab,
         parsedUserInfo.accountName,
         20,
-        state.cursor ? JSON.stringify(state.cursor) : undefined,
-        state.filters
+        cursorToUse,
+        filtersToUse,
       );
 
       setTabData((prev) => {
         const map = new Map(
-          (reset ? [] : prev[tab].items).map((i) => [i.id, i])
+          (reset ? [] : prev[tab].items).map((i) => [i.id, i]),
         );
         res.items.forEach((i) => map.set(i.id, i));
 
@@ -85,7 +94,7 @@ export function useHaves() {
           [tab]: {
             items: Array.from(map.values()),
             cursor: res.nextCursor,
-            hasMore: Boolean(res.nextCursor),
+            hasMore: res.nextCursor != null,
             loading: false,
             loadingMore: false,
             initialLoaded: true,
@@ -94,7 +103,7 @@ export function useHaves() {
       });
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Unable to fetch have list!"
+        err instanceof Error ? err.message : "Unable to fetch have list!",
       );
     } finally {
       setLoading(false);
@@ -117,12 +126,14 @@ export function useHaves() {
 
             return [res, ...filtered];
           },
-          res.foundBy === parsedUserInfo.accountName ? ["all", "mine"] : ["all"]
-        )
+          res.foundBy === parsedUserInfo.accountName
+            ? ["all", "mine"]
+            : ["all"],
+        ),
       );
 
       toast.success(
-        editItemId ? "Successfully edited item!" : "Successfully added item!"
+        editItemId ? "Successfully edited item!" : "Successfully added item!",
       );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Unable to add item!");
@@ -131,7 +142,7 @@ export function useHaves() {
 
   async function deleteHaveItem(
     itemId: string,
-    isEdittedItem: boolean = false
+    isEdittedItem: boolean = false,
   ) {
     try {
       await deleteHave(itemId);
@@ -141,13 +152,13 @@ export function useHaves() {
           "all",
           "mine",
           "requests",
-        ])
+        ]),
       );
 
       !isEdittedItem && toast.success("Item successfully deleted!");
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to delete item!"
+        err instanceof Error ? err.message : "Failed to delete item!",
       );
     }
   }
@@ -175,16 +186,16 @@ export function useHaves() {
                     isReserved: newReserved,
                     reservedBy: newReserved ? parsedUserInfo.accountName : null,
                   }
-                : i
+                : i,
             ),
-          ["all", "mine", "requests"]
-        )
+          ["all", "mine", "requests"],
+        ),
       );
 
       toast.success(newReserved ? "Item reserved!" : "Reservation removed!");
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Unable to reserve item!"
+        err instanceof Error ? err.message : "Unable to reserve item!",
       );
     }
   }
@@ -203,7 +214,7 @@ export function useHaves() {
 function updateTabs(
   prev: Record<TabKey, TabState>,
   updater: (items: HaveItem[]) => HaveItem[],
-  tabs: TabKey[]
+  tabs: TabKey[],
 ) {
   const next = { ...prev };
 
