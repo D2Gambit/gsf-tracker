@@ -55,6 +55,7 @@ export default function HaveList() {
 
   const currentTab = tabData[activeTab];
   const debouncedSearch = useDebounce(searchTerm, 500);
+  const isSearching = debouncedSearch.trim().length > 0;
 
   const createListStats = (): ListStat[] => {
     const listStats: ListStat[] = [];
@@ -76,7 +77,7 @@ export default function HaveList() {
     listStats.push({
       statTitle: "My Posts",
       statValue: String(
-        currentTab.items.filter((i) => i.foundBy === accountName).length
+        currentTab.items.filter((i) => i.foundBy === accountName).length,
       ),
       statColor: "text-blue-800",
     });
@@ -139,8 +140,8 @@ export default function HaveList() {
       .then(setCounts)
       .catch((err) =>
         toast.error(
-          err instanceof Error ? err.message : "Failed to load counts"
-        )
+          err instanceof Error ? err.message : "Failed to load counts",
+        ),
       );
   }, [session?.gsfGroupId, accountName]);
 
@@ -154,7 +155,12 @@ export default function HaveList() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !currentTab.loading && currentTab.hasMore) {
+        if (
+          entry.isIntersecting &&
+          !currentTab.loading &&
+          currentTab.hasMore &&
+          !isSearching
+        ) {
           loadHaves(session.gsfGroupId, activeTab);
         }
       },
@@ -162,7 +168,7 @@ export default function HaveList() {
         root: null,
         rootMargin: "200px",
         threshold: 0,
-      }
+      },
     );
 
     observer.observe(el);
@@ -182,10 +188,10 @@ export default function HaveList() {
       activeTab === "all"
         ? true
         : activeTab === "mine"
-        ? item.foundBy === accountName
-        : activeTab === "requests"
-        ? item.foundBy === accountName && item.isReserved
-        : true;
+          ? item.foundBy === accountName
+          : activeTab === "requests"
+            ? item.foundBy === accountName && item.isReserved
+            : true;
 
     return matchesQuality && matchesReserved && matchesTab;
   });
@@ -295,7 +301,9 @@ export default function HaveList() {
             </p>
           )}
 
-          {currentTab.hasMore && <div ref={loadMoreRef} className="h-1" />}
+          {currentTab.hasMore && !isSearching && (
+            <div ref={loadMoreRef} className="h-1" />
+          )}
 
           <ListStats listStats={createListStats()} />
         </section>
