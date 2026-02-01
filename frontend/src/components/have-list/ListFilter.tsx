@@ -3,6 +3,7 @@ import { getQualityColor } from "../../utils/colors";
 
 const QUALITY_OPTIONS = [
   "Charms",
+  "Crafted",
   "Materials",
   "Normal",
   "Magic",
@@ -62,7 +63,7 @@ export default function ListFilter({
                 setSelectedQualities((prev) =>
                   prev.includes(quality)
                     ? prev.filter((q) => q !== quality)
-                    : [...prev, quality]
+                    : [...prev, quality],
                 )
               }
               className={`
@@ -72,7 +73,7 @@ export default function ListFilter({
             isSelected
               ? `${getQualityColor(quality)} border-transparent`
               : `${getQualityColor(
-                  quality
+                  quality,
                 )} opacity-70 border-zinc-300 hover:bg-zinc-200`
           }
         `}

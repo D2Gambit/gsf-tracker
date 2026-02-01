@@ -50,17 +50,15 @@ export function useHaves() {
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
   let cursorToUse: string | undefined;
-  let filtersToUse: HaveFilters | undefined;
 
   async function loadHaves(groupId: string, tab: TabKey, reset = false) {
-    const state = tabData[tab];
+    let state = tabData[tab];
 
     setTabData((prev) => {
       const state = prev[tab];
       cursorToUse = reset
         ? undefined
         : (JSON.stringify(state.cursor) ?? undefined);
-      filtersToUse = state.filters;
 
       return {
         ...prev,
@@ -80,7 +78,7 @@ export function useHaves() {
         parsedUserInfo.accountName,
         20,
         cursorToUse,
-        filtersToUse,
+        state.filters,
       );
 
       setTabData((prev) => {
@@ -94,7 +92,7 @@ export function useHaves() {
           [tab]: {
             items: Array.from(map.values()),
             cursor: res.nextCursor,
-            hasMore: res.nextCursor != null,
+            hasMore: Boolean(res.nextCursor),
             loading: false,
             loadingMore: false,
             initialLoaded: true,
