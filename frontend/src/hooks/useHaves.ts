@@ -143,8 +143,8 @@ export function useHaves() {
             return [res, ...filtered];
           },
           res.foundBy === parsedUserInfo.accountName
-            ? ["all", "mine"]
-            : ["all"],
+            ? ["todaysFinds", "all", "mine"]
+            : ["todaysFinds", "all"],
         ),
       );
 
@@ -165,6 +165,7 @@ export function useHaves() {
 
       setTabData((prev) =>
         updateTabs(prev, (items) => items.filter((i) => i.id !== itemId), [
+          "todaysFinds",
           "all",
           "mine",
           "requests",
