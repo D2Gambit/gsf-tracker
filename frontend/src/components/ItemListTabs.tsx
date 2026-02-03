@@ -9,6 +9,7 @@ type ItemListTabsProps = {
     allCount: number;
     myItemsCount: number;
     requestsCount: number;
+    itemsIWantCount: number;
   } | null;
 };
 
