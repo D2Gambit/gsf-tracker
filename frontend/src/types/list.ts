@@ -85,7 +85,7 @@ export interface NeedItem {
   createdAt: string;
 }
 
-export type TabKey = "all" | "mine" | "requests";
+export type TabKey = "all" | "mine" | "requests" | "itemsIWant";
 
 export type TabState = {
   items: HaveItem[];

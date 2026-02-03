@@ -86,6 +86,31 @@ export default function ItemListTabs({
             </span>
           </button>
         )}
+
+        {isHaveList && (
+          <button
+            onClick={() => setActiveTab("itemsIWant")}
+            className={`pb-2 text-sm font-medium transition-colors ${
+              activeTab === "itemsIWant"
+                ? "border-b-2 border-red-500 text-red-500"
+                : "text-zinc-400 hover:text-zinc-200"
+            }`}
+          >
+            Items I Want
+            <span className="ml-2 text-xs text-zinc-400">
+              (
+              {counts
+                ? counts.itemsIWantCount
+                : itemList.filter((i) => {
+                    return (
+                      (i as HaveItem).reservedBy === accountName &&
+                      (i as HaveItem).isReserved
+                    );
+                  }).length}
+              )
+            </span>
+          </button>
+        )}
       </nav>
     </div>
   );

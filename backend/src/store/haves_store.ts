@@ -34,7 +34,7 @@ export const getHaveItems = async (
   qualities?: string[],
   reservable?: boolean,
   accountName?: string,
-  cursor?: { createdAt: Date; id: number }
+  cursor?: { createdAt: Date; id: number },
 ) => {
   const conditions = [
     eq(haveItems.gsfGroupId, gsfGroupId),
@@ -50,12 +50,18 @@ export const getHaveItems = async (
     conditions.push(eq(haveItems.isReserved, true));
   }
 
+  if (tab === "itemsIWant") {
+    conditions.push(eq(haveItems.reservedBy, accountName!));
+    conditions.push(eq(haveItems.isReserved, true));
+  }
+
   if (search) {
     conditions.push(
       or(
         ilike(haveItems.name, `%${search}%`),
-        ilike(haveItems.description, `%${search}%`)
-      )!
+        ilike(haveItems.description, `%${search}%`),
+        ilike(haveItems.foundBy, `%${search}%`),
+      )!,
     );
   }
 
@@ -66,7 +72,7 @@ export const getHaveItems = async (
   if (reservable !== undefined) {
     const reservableCondition = and(
       eq(haveItems.isReserved, !reservable),
-      ne(haveItems.foundBy, accountName!)
+      ne(haveItems.foundBy, accountName!),
     );
     if (reservableCondition) {
       conditions.push(reservableCondition);
@@ -79,9 +85,9 @@ export const getHaveItems = async (
         lt(haveItems.createdAt, cursor.createdAt),
         and(
           eq(haveItems.createdAt, cursor.createdAt),
-          lt(haveItems.id, cursor.id)
-        )
-      )!
+          lt(haveItems.id, cursor.id),
+        ),
+      )!,
     );
   }
 
@@ -108,7 +114,7 @@ export const getHaveItems = async (
 
 export async function getHaveItemCounts(
   gsfGroupId: string,
-  accountName: string
+  accountName: string,
 ) {
   const [result] = await db
     .select({
@@ -124,10 +130,16 @@ export async function getHaveItemCounts(
           and ${haveItems.isReserved} = true
         )
       `,
+      itemsIWantCount: sql<number>`
+      count(*) filter (
+        where ${haveItems.reservedBy} = ${accountName}
+        and ${haveItems.isReserved} = true
+      )
+    `,
     })
     .from(haveItems)
     .where(
-      and(eq(haveItems.gsfGroupId, gsfGroupId), eq(haveItems.isActive, true))
+      and(eq(haveItems.gsfGroupId, gsfGroupId), eq(haveItems.isActive, true)),
     );
 
   return result;
@@ -140,7 +152,7 @@ export const deleteHaveItem = async (id: string) => {
 export const updateHaveItemReservedFlag = async (
   id: string,
   isReserved: boolean,
-  reservedBy: string
+  reservedBy: string,
 ) => {
   return db
     .update(haveItems)

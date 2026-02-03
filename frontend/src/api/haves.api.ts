@@ -6,7 +6,7 @@ export async function fetchHaveItems(
   accountName: string,
   limit = 20,
   cursor?: string,
-  filters?: HaveFilters
+  filters?: HaveFilters,
 ) {
   const params = new URLSearchParams({
     limit: String(limit),
@@ -42,18 +42,19 @@ export async function deleteHave(itemId: string) {
 
 export async function fetchHaveItemCounts(
   gsfGroupId: string,
-  accountName: string
+  accountName: string,
 ) {
   const res = await fetch(
     `/api/have-items/counts/${gsfGroupId}?accountName=${encodeURIComponent(
-      accountName
-    )}`
+      accountName,
+    )}`,
   );
   if (!res.ok) throw new Error("Failed to fetch item counts");
   return res.json() as Promise<{
     allCount: number;
     myItemsCount: number;
     requestsCount: number;
+    itemsIWantCount: number;
   }>;
 }
 
@@ -83,7 +84,7 @@ export async function addHave(data: AddHaveItemRequest) {
 export async function toggleReserved(
   id: string,
   isReserved: boolean,
-  reservedBy: string
+  reservedBy: string,
 ) {
   try {
     const formData = new FormData();
