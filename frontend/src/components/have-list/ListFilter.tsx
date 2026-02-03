@@ -42,7 +42,7 @@ export default function ListFilter({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            placeholder="Search items by name or description..."
+            placeholder="Search items by who found it, item name, or description..."
           />
         </div>
       </div>

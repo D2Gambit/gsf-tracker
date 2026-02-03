@@ -34,6 +34,7 @@ export default function HaveList() {
     allCount: 0,
     myItemsCount: 0,
     requestsCount: 0,
+    itemsIWantCount: 0,
   });
 
   const { session } = useAuth();

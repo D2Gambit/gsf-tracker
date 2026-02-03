@@ -44,6 +44,15 @@ export function useHaves() {
       initialLoaded: false,
       filters: {},
     },
+    itemsIWant: {
+      items: [],
+      cursor: null,
+      hasMore: true,
+      loading: false,
+      loadingMore: false,
+      initialLoaded: false,
+      filters: {},
+    },
   });
 
   const userInfo = localStorage.getItem("gsfUserInfo");
