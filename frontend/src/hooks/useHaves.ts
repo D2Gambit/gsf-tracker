@@ -182,6 +182,7 @@ export function useHaves() {
   async function toggleReservation(itemId: string) {
     try {
       const item =
+        tabData.todaysFinds.items.find((i) => i.id === itemId) ??
         tabData.all.items.find((i) => i.id === itemId) ??
         tabData.mine.items.find((i) => i.id === itemId);
 
@@ -204,7 +205,7 @@ export function useHaves() {
                   }
                 : i,
             ),
-          ["all", "mine", "requests"],
+          ["todaysFinds", "all", "mine", "requests"],
         ),
       );
 
