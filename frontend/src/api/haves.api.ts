@@ -51,6 +51,7 @@ export async function fetchHaveItemCounts(
   );
   if (!res.ok) throw new Error("Failed to fetch item counts");
   return res.json() as Promise<{
+    todaysFindsCount: number;
     allCount: number;
     myItemsCount: number;
     requestsCount: number;

@@ -17,6 +17,15 @@ import type {
 export function useHaves() {
   const [loading, setLoading] = useState(false);
   const [tabData, setTabData] = useState<Record<TabKey, TabState>>({
+    todaysFinds: {
+      items: [],
+      cursor: null,
+      hasMore: true,
+      loading: false,
+      loadingMore: false,
+      initialLoaded: false,
+      filters: {},
+    },
     all: {
       items: [],
       cursor: null,

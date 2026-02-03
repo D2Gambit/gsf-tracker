@@ -28,9 +28,10 @@ export default function HaveList() {
   const [showReservedOnly, setShowReservedOnly] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<HaveItem | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const [activeTab, setActiveTab] = useState<TabKey>("todaysFinds");
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [counts, setCounts] = useState({
+    todaysFindsCount: 0,
     allCount: 0,
     myItemsCount: 0,
     requestsCount: 0,
@@ -186,13 +187,16 @@ export default function HaveList() {
       !showReservedOnly || (!item.isReserved && item.foundBy !== accountName);
 
     const matchesTab =
-      activeTab === "all"
+      activeTab === "todaysFinds" &&
+      new Date(item.createdAt).getTime() >= Date.now() - 24 * 60 * 60 * 1000
         ? true
-        : activeTab === "mine"
-          ? item.foundBy === accountName
-          : activeTab === "requests"
-            ? item.foundBy === accountName && item.isReserved
-            : true;
+        : activeTab === "all"
+          ? true
+          : activeTab === "mine"
+            ? item.foundBy === accountName
+            : activeTab === "requests"
+              ? item.foundBy === accountName && item.isReserved
+              : true;
 
     return matchesQuality && matchesReserved && matchesTab;
   });
