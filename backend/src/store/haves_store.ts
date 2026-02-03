@@ -7,7 +7,7 @@ import {
   inArray,
   ne,
 } from "drizzle-orm/sql/expressions/conditions";
-import { desc, sql } from "drizzle-orm";
+import { desc, gt, sql } from "drizzle-orm";
 import { db } from "../config/db.js";
 import { haveItems } from "../config/schema.js";
 
@@ -53,6 +53,10 @@ export const getHaveItems = async (
   if (tab === "itemsIWant") {
     conditions.push(eq(haveItems.reservedBy, accountName!));
     conditions.push(eq(haveItems.isReserved, true));
+  }
+
+  if (tab === "todaysFinds") {
+    conditions.push(gt(haveItems.createdAt, sql`now() - interval '24 hours'`));
   }
 
   if (search) {
@@ -134,6 +138,11 @@ export async function getHaveItemCounts(
       count(*) filter (
         where ${haveItems.reservedBy} = ${accountName}
         and ${haveItems.isReserved} = true
+      )
+    `,
+      todaysFindsCount: sql<number>`
+      count(*) filter (
+        where ${haveItems.createdAt} >= now() - interval '24 hours'
       )
     `,
     })

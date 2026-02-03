@@ -41,7 +41,7 @@ export default function ListItem({
     }
     const normalized = normalizeDescriptionForModal(
       item.description,
-      item.name
+      item.name,
     );
     setModalContent({
       type: "text",
@@ -68,7 +68,7 @@ export default function ListItem({
           <div className="flex items-center gap-3 mb-2">
             <span
               className={`w-20 px-2 py-0.5 rounded-full text-xs text-center ${getQualityColor(
-                item.quality
+                item.quality,
               )}`}
               title={item.quality}
             >
@@ -78,6 +78,12 @@ export default function ListItem({
               className={`text-lg font-semibold bg-opacity-0}`}
               title={item.name}
             >
+              {new Date(item.createdAt).getTime() >=
+                Date.now() - 12 * 60 * 60 * 1000 && (
+                <span className=" text-blue-500 text-xs font-medium mr-2">
+                  NEW
+                </span>
+              )}
               {truncate(item.name, 30)}
             </h3>
             {item.imageUrl && <Image className="h-5 w-5 text-blue-700" />}
@@ -113,6 +119,7 @@ export default function ListItem({
                 </div>
               ) : null}
             </div>
+
             <div className="space-y-1">
               <div>
                 Date found:{" "}
@@ -146,7 +153,6 @@ export default function ListItem({
                 {item.isReserved ? "Unreserve" : "Reserve"}
               </button>
             )}
-
           {accountName === item.foundBy && (
             <>
               <button

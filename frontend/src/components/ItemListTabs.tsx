@@ -6,6 +6,7 @@ type ItemListTabsProps = {
   setActiveTab: React.Dispatch<React.SetStateAction<TabKey>>;
   isHaveList: boolean;
   counts: {
+    todaysFindsCount: number;
     allCount: number;
     myItemsCount: number;
     requestsCount: number;
@@ -27,6 +28,20 @@ export default function ItemListTabs({
   return (
     <div className="mt-4 mb-4 border-b border-zinc-600">
       <nav className="flex space-x-6">
+        <button
+          onClick={() => setActiveTab("todaysFinds")}
+          className={`pb-2 text-sm font-medium transition-colors ${
+            activeTab === "todaysFinds"
+              ? "border-b-2 border-red-500 text-red-500"
+              : "text-zinc-400 hover:text-zinc-200"
+          }`}
+        >
+          Today's Finds
+          <span className="ml-2 text-xs text-zinc-400">
+            ({counts ? counts.todaysFindsCount : itemList.length})
+          </span>
+        </button>
+
         <button
           onClick={() => setActiveTab("all")}
           className={`pb-2 text-sm font-medium transition-colors ${

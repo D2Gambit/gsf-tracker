@@ -17,6 +17,15 @@ import type {
 export function useHaves() {
   const [loading, setLoading] = useState(false);
   const [tabData, setTabData] = useState<Record<TabKey, TabState>>({
+    todaysFinds: {
+      items: [],
+      cursor: null,
+      hasMore: true,
+      loading: false,
+      loadingMore: false,
+      initialLoaded: false,
+      filters: {},
+    },
     all: {
       items: [],
       cursor: null,
@@ -134,8 +143,8 @@ export function useHaves() {
             return [res, ...filtered];
           },
           res.foundBy === parsedUserInfo.accountName
-            ? ["all", "mine"]
-            : ["all"],
+            ? ["todaysFinds", "all", "mine"]
+            : ["todaysFinds", "all"],
         ),
       );
 
@@ -156,6 +165,7 @@ export function useHaves() {
 
       setTabData((prev) =>
         updateTabs(prev, (items) => items.filter((i) => i.id !== itemId), [
+          "todaysFinds",
           "all",
           "mine",
           "requests",
@@ -173,6 +183,7 @@ export function useHaves() {
   async function toggleReservation(itemId: string) {
     try {
       const item =
+        tabData.todaysFinds.items.find((i) => i.id === itemId) ??
         tabData.all.items.find((i) => i.id === itemId) ??
         tabData.mine.items.find((i) => i.id === itemId);
 
@@ -195,7 +206,7 @@ export function useHaves() {
                   }
                 : i,
             ),
-          ["all", "mine", "requests"],
+          ["todaysFinds", "all", "mine", "requests"],
         ),
       );
 
