@@ -16,6 +16,7 @@ const Header = () => {
 
   const navigation = [
     { name: "Group Organizer", href: "/" },
+    { name: "Bingo", href: "/bingo" },
     { name: "Loot Showcase", href: "/loot-showcase" },
     { name: "Need List", href: "/need-list" },
     { name: "Have List", href: "/have-list" },

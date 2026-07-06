@@ -1,3 +1,5 @@
+declare const process: { env: Record<string, string | undefined> };
+
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { createClient } from "@supabase/supabase-js";
@@ -11,7 +13,7 @@ export const db = drizzle(sql);
 
 export const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SERVICE_ROLE_KEY!
+  process.env.SERVICE_ROLE_KEY!,
 );
 
 export const uploadLootImage = async (file: File) => {

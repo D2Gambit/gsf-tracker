@@ -8,6 +8,15 @@ import {
   getHotFinds,
   getLatestFinds,
 } from "../store/finds_store.js";
+import {
+  seedDefaultBingoItems,
+  getBingoBoard,
+  createBingoItem,
+  updateBingoItem,
+  deleteBingoItem,
+  claimBingoSlot,
+  unclaimBingoSlot,
+} from "../store/bingo_store.js";
 import { uploadLootImage } from "../config/db.js";
 import {
   createNeedItem,
@@ -34,6 +43,13 @@ import {
   getMembersByGroup,
   updateMember,
 } from "../store/members_store.js";
+import {
+  seedDefaultPersonalBingoItems,
+  getPersonalBingoBoard,
+  completePersonalBingoItem,
+  uncompletePersonalBingoItem,
+  getPersonalBingoSummary,
+} from "../store/personal_bingo_store.js";
 
 export const api = new Hono();
 
@@ -378,4 +394,121 @@ api.post(`/edit-member/:gsfGroupId/:accountName`, async (c) => {
   );
 
   return c.json(result[0]);
+});
+
+api.get("/bingo/:gsfGroupId", async (c) => {
+  const gsfGroupId = c.req.param("gsfGroupId");
+  await seedDefaultBingoItems(gsfGroupId);
+  return c.json(await getBingoBoard(gsfGroupId));
+});
+
+api.post("/bingo/add-item", async (c) => {
+  const body = await c.req.parseBody();
+  const result = await createBingoItem({
+    gsfGroupId: body.gsfGroupId as string,
+    label: body.label as string,
+    maxEntries: Number(body.maxEntries ?? 1),
+    sortOrder: Number(body.sortOrder ?? 0),
+  });
+  return c.json(result[0]);
+});
+
+api.post("/bingo/edit-item/:id", async (c) => {
+  const body = await c.req.parseBody();
+  const result = await updateBingoItem(c.req.param("id"), {
+    label: body.label as string,
+    maxEntries: body.maxEntries ? Number(body.maxEntries) : undefined,
+    sortOrder: body.sortOrder ? Number(body.sortOrder) : undefined,
+    isActive:
+      body.isActive !== undefined ? body.isActive === "true" : undefined,
+  });
+  return c.json(result[0]);
+});
+
+api.delete("/bingo/delete-item/:id", async (c) => {
+  return c.json(await deleteBingoItem(c.req.param("id")));
+});
+
+api.post("/bingo/claim", async (c) => {
+  const body = await c.req.parseBody();
+  try {
+    const result = await claimBingoSlot({
+      bingoItemId: body.bingoItemId as string,
+      gsfGroupId: body.gsfGroupId as string,
+      accountName: body.accountName as string,
+    });
+    return c.json(result[0]);
+  } catch (err: any) {
+    if (err.message === "ALREADY_CLAIMED") {
+      return c.json({ error: "You've already claimed this square." }, 409);
+    }
+    if (err.message === "SQUARE_FULL") {
+      return c.json({ error: "This square is already full." }, 409);
+    }
+    console.error(err);
+    return c.json({ error: "Internal server error" }, 500);
+  }
+});
+
+api.post("/bingo/unclaim/:claimId", async (c) => {
+  const body = await c.req.parseBody();
+  return c.json(
+    await unclaimBingoSlot(c.req.param("claimId"), body.accountName as string),
+  );
+});
+
+api.get("/personal-bingo/summary/:gsfGroupId", async (c) => {
+  const summary = await getPersonalBingoSummary(c.req.param("gsfGroupId"));
+  return c.json(summary);
+});
+
+api.get("/personal-bingo/:gsfGroupId/:accountName", async (c) => {
+  await seedDefaultPersonalBingoItems();
+  const board = await getPersonalBingoBoard(
+    c.req.param("gsfGroupId"),
+    c.req.param("accountName"),
+  );
+  return c.json(board);
+});
+
+api.post("/personal-bingo/complete", async (c) => {
+  const body = await c.req.parseBody();
+  const targetAccount = body.accountName as string;
+  const requestingAccount = body.requestingAccount as string;
+
+  if (targetAccount !== requestingAccount) {
+    return c.json({ error: "You can only edit your own bingo card." }, 403);
+  }
+
+  try {
+    const result = await completePersonalBingoItem({
+      personalBingoItemId: body.personalBingoItemId as string,
+      gsfGroupId: body.gsfGroupId as string,
+      accountName: targetAccount,
+    });
+    return c.json(result[0]);
+  } catch (err: any) {
+    if (err.message === "ALREADY_COMPLETED") {
+      return c.json({ error: "Already marked complete." }, 409);
+    }
+    console.error(err);
+    return c.json({ error: "Internal server error" }, 500);
+  }
+});
+
+api.post("/personal-bingo/uncomplete", async (c) => {
+  const body = await c.req.parseBody();
+  const targetAccount = body.accountName as string;
+  const requestingAccount = body.requestingAccount as string;
+
+  if (targetAccount !== requestingAccount) {
+    return c.json({ error: "You can only edit your own bingo card." }, 403);
+  }
+
+  const result = await uncompletePersonalBingoItem(
+    body.personalBingoItemId as string,
+    body.gsfGroupId as string,
+    targetAccount,
+  );
+  return c.json(result);
 });

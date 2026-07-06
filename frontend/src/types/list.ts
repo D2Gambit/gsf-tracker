@@ -85,6 +85,46 @@ export interface NeedItem {
   createdAt: string;
 }
 
+export interface BingoClaim {
+  id: number;
+  bingoItemId: number;
+  accountName: string;
+  slotIndex: number;
+  createdAt: string;
+}
+
+export interface BingoItem {
+  id: number;
+  gsfGroupId: string;
+  label: string;
+  maxEntries: number;
+  slotLabels: string[] | null;
+  sortOrder: number;
+  isActive: boolean;
+  claims: BingoClaim[];
+}
+
+export interface PersonalBingoProgress {
+  id: number;
+  personalBingoItemId: number;
+  gsfGroupId: string;
+  accountName: string;
+  completedAt: string;
+}
+
+export interface PersonalBingoItem {
+  id: number;
+  label: string;
+  sortOrder: number;
+  isActive: boolean;
+  progress: PersonalBingoProgress | null;
+}
+
+export interface PersonalBingoSummary {
+  totalItems: number;
+  counts: { accountName: string; completedCount: number }[];
+}
+
 export type TabKey = "todaysFinds" | "all" | "mine" | "requests" | "itemsIWant";
 
 export type TabState = {
