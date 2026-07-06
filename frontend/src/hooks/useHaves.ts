@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   addHave,
   deleteHave,
@@ -64,6 +64,8 @@ export function useHaves() {
     },
   });
 
+  const previousReservationsRef = useRef<Map<string, boolean>>(new Map());
+
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
@@ -117,6 +119,7 @@ export function useHaves() {
           },
         };
       });
+      detectReservations(res.items, parsedUserInfo.accountName);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Unable to fetch have list!",
@@ -227,6 +230,33 @@ export function useHaves() {
     tabData,
     setTabData,
   };
+
+  function detectReservations(items: HaveItem[], currentUser: string) {
+    const prev = previousReservationsRef.current;
+
+    for (const item of items) {
+      const wasReserved = prev.get(item.id) ?? false;
+
+      if (item.isReserved && !wasReserved && item.foundBy === currentUser) {
+        notifyReservation(item);
+      }
+
+      prev.set(item.id, item.isReserved);
+    }
+  }
+
+  function notifyReservation(item: HaveItem) {
+    const audio = new Audio("/reserved.mp3");
+    audio.volume = 0.5;
+    audio.play().catch(() => {
+      // autoplay might be blocked until user interaction
+      console.error(
+        "Unable to play reservation sound since sound isn't enabled",
+      );
+    });
+
+    toast.success(`Your item "${item.name}" was reserved`);
+  }
 }
 
 function updateTabs(

@@ -178,6 +178,31 @@ export default function HaveList() {
     return () => observer.disconnect();
   }, [session?.gsfGroupId, activeTab, currentTab.loading, currentTab.hasMore]);
 
+  useEffect(() => {
+    if (!session || !parsedUserInfo || !accountName) {
+      navigate("/");
+      return;
+    }
+    if (!session?.gsfGroupId || !accountName) return;
+
+    const interval = setInterval(() => {
+      loadHaves(session.gsfGroupId, activeTab, true);
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      const audio = new Audio("/silence.mp3");
+      audio.play().catch(() => {});
+      window.removeEventListener("click", unlockAudio);
+    };
+
+    window.addEventListener("click", unlockAudio);
+    return () => window.removeEventListener("click", unlockAudio);
+  }, []);
+
   const filteredItems = currentTab.items.filter((item) => {
     const matchesQuality =
       selectedQualities.length === 0 ||
