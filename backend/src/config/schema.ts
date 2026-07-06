@@ -5,6 +5,8 @@ import {
   boolean,
   serial,
   bigint,
+  integer,
+  jsonb,
 } from "drizzle-orm/pg-core";
 export const finds = pgTable("gsffinds", {
   id: serial("id").primaryKey(),
@@ -77,4 +79,43 @@ export const gsfMembers = pgTable("gsfmembers", {
     .default("Assassin"),
   buildName: text("build_name").notNull().default("Unknown"),
   discordName: text("discord_name").notNull(),
+});
+
+export const bingoItems = pgTable("bingo_items", {
+  id: serial("id").primaryKey(),
+  gsfGroupId: text("gsf_group_id").notNull(),
+  label: text("label").notNull(),
+  maxEntries: integer("max_entries").notNull().default(1), // e.g. 3 for "Player 1/2/3"
+  slotLabels: jsonb("slot_labels").$type<string[] | null>(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const bingoClaims = pgTable("bingo_claims", {
+  id: serial("id").primaryKey(),
+  bingoItemId: integer("bingo_item_id")
+    .notNull()
+    .references(() => bingoItems.id),
+  gsfGroupId: text("gsf_group_id").notNull(),
+  accountName: text("account_name").notNull(),
+  slotIndex: integer("slot_index").notNull(), // 0-based, which "Player #" slot this fills
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const personalBingoItems = pgTable("personal_bingo_items", {
+  id: serial("id").primaryKey(),
+  label: text("label").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+});
+
+export const personalBingoProgress = pgTable("personal_bingo_progress", {
+  id: serial("id").primaryKey(),
+  personalBingoItemId: integer("personal_bingo_item_id")
+    .notNull()
+    .references(() => personalBingoItems.id),
+  gsfGroupId: text("gsf_group_id").notNull(),
+  accountName: text("account_name").notNull(),
+  completedAt: timestamp("completed_at").notNull().defaultNow(),
 });

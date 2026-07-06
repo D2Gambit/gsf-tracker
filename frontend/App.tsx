@@ -1,7 +1,9 @@
 import React from "react";
+// @ts-expect-error - CSS import is handled by the bundler
 import "@radix-ui/themes/styles.css";
 import { Theme } from "@radix-ui/themes";
 import { ToastContainer } from "react-toastify";
+// @ts-expect-error - CSS import is handled by the bundler
 import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
@@ -9,6 +11,7 @@ import Home from "./src/pages/Home";
 import ProtectedRoute from "./ProtectedRoute";
 import LootShowcase from "./src/pages/LootShowcase";
 import SignUp from "./src/pages/SignUp";
+import BingoPage from "./src/pages/BingoPage";
 import NeedList from "./src/pages/NeedList";
 import HaveList from "./src/pages/HaveList";
 import NotFound from "./src/pages/NotFound";
@@ -34,6 +37,14 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <SignUp />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bingo"
+              element={
+                <ProtectedRoute>
+                  <BingoPage />
                 </ProtectedRoute>
               }
             />
