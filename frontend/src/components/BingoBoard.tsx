@@ -67,7 +67,12 @@ const BingoBoard = ({ gsfGroupId }: { gsfGroupId: string }) => {
                     ) : (
                       <button
                         onClick={() =>
-                          claim(item.id, gsfGroupId, userInfo!.accountName)
+                          claim(
+                            item.id,
+                            gsfGroupId,
+                            userInfo!.accountName,
+                            item.slotLabels ? slot : undefined,
+                          )
                         }
                         className="text-zinc-400 hover:text-red-400"
                       >
