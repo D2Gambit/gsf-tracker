@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   addHave,
   deleteHave,
@@ -64,31 +64,31 @@ export function useHaves() {
     },
   });
 
+  // Always-current mirror of tabData, so loadHaves reads fresh state
+  // even if the closure that invoked it is stale.
+  const tabDataRef = useRef(tabData);
+  useEffect(() => {
+    tabDataRef.current = tabData;
+  }, [tabData]);
+
   const previousReservationsRef = useRef<Map<string, boolean>>(new Map());
 
   const userInfo = localStorage.getItem("gsfUserInfo");
   const parsedUserInfo = userInfo ? JSON.parse(userInfo) : null;
 
-  let cursorToUse: string | undefined;
-
   async function loadHaves(groupId: string, tab: TabKey, reset = false) {
-    let state = tabData[tab];
+    // Read from the ref, not the closed-over tabData — this is always current.
+    const state = tabDataRef.current[tab];
+    const cursorToUse = reset
+      ? undefined
+      : state.cursor
+        ? JSON.stringify(state.cursor)
+        : undefined;
 
-    setTabData((prev) => {
-      const state = prev[tab];
-      cursorToUse = reset
-        ? undefined
-        : (JSON.stringify(state.cursor) ?? undefined);
-
-      return {
-        ...prev,
-        [tab]: {
-          ...state,
-          loading: reset,
-          loadingMore: !reset,
-        },
-      };
-    });
+    setTabData((prev) => ({
+      ...prev,
+      [tab]: { ...prev[tab], loading: reset, loadingMore: !reset },
+    }));
 
     try {
       setLoading(true);
@@ -105,11 +105,12 @@ export function useHaves() {
         const map = new Map(
           (reset ? [] : prev[tab].items).map((i) => [i.id, i]),
         );
-        res.items.forEach((i) => map.set(i.id, i));
+        res.items.forEach((i: HaveItem) => map.set(i.id, i));
 
         return {
           ...prev,
           [tab]: {
+            ...prev[tab],
             items: Array.from(map.values()),
             cursor: res.nextCursor,
             hasMore: Boolean(res.nextCursor),
