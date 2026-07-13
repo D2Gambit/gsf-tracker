@@ -57,7 +57,6 @@ export default function HaveList() {
 
   const currentTab = tabData[activeTab];
   const debouncedSearch = useDebounce(searchTerm, 500);
-  const isSearching = debouncedSearch.trim().length > 0;
 
   const createListStats = (): ListStat[] => {
     const listStats: ListStat[] = [];
@@ -160,23 +159,26 @@ export default function HaveList() {
         if (
           entry.isIntersecting &&
           !currentTab.loading &&
-          currentTab.hasMore &&
-          !isSearching
+          !currentTab.loadingMore &&
+          currentTab.hasMore
         ) {
           loadHaves(session.gsfGroupId, activeTab);
         }
       },
-      {
-        root: null,
-        rootMargin: "200px",
-        threshold: 0,
-      },
+      { root: null, rootMargin: "200px", threshold: 0 },
     );
 
     observer.observe(el);
 
     return () => observer.disconnect();
-  }, [session?.gsfGroupId, activeTab, currentTab.loading, currentTab.hasMore]);
+  }, [
+    session?.gsfGroupId,
+    activeTab,
+    currentTab.loading,
+    currentTab.loadingMore,
+    currentTab.hasMore,
+    JSON.stringify(currentTab.filters),
+  ]);
 
   useEffect(() => {
     if (!session || !parsedUserInfo || !accountName) {
@@ -331,9 +333,7 @@ export default function HaveList() {
             </p>
           )}
 
-          {currentTab.hasMore && !isSearching && (
-            <div ref={loadMoreRef} className="h-1" />
-          )}
+          {currentTab.hasMore && <div ref={loadMoreRef} className="h-1" />}
 
           <ListStats listStats={createListStats()} />
         </section>
