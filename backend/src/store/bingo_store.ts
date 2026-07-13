@@ -156,6 +156,7 @@ export async function claimBingoSlot(data: {
   bingoItemId: string;
   gsfGroupId: string;
   accountName: string;
+  slotIndex?: number;
 }) {
   const [item] = await db
     .select()
@@ -174,15 +175,28 @@ export async function claimBingoSlot(data: {
   }
 
   const takenSlots = new Set(existingClaims.map((c) => c.slotIndex));
-  let slotIndex = -1;
-  for (let i = 0; i < item.maxEntries; i++) {
-    if (!takenSlots.has(i)) {
-      slotIndex = i;
-      break;
-    }
-  }
+  let slotIndex: number;
 
-  if (slotIndex === -1) throw new Error("SQUARE_FULL");
+  if (data.slotIndex !== undefined) {
+    // Caller specified a specific slot (e.g. named slots like Fire/Cold/Light/Poison)
+    if (data.slotIndex < 0 || data.slotIndex >= item.maxEntries) {
+      throw new Error("INVALID_SLOT");
+    }
+    if (takenSlots.has(data.slotIndex)) {
+      throw new Error("SLOT_TAKEN");
+    }
+    slotIndex = data.slotIndex;
+  } else {
+    // No specific slot requested — auto-assign lowest open one
+    slotIndex = -1;
+    for (let i = 0; i < item.maxEntries; i++) {
+      if (!takenSlots.has(i)) {
+        slotIndex = i;
+        break;
+      }
+    }
+    if (slotIndex === -1) throw new Error("SQUARE_FULL");
+  }
 
   return db
     .insert(bingoClaims)

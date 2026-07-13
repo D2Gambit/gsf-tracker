@@ -436,6 +436,8 @@ api.post("/bingo/claim", async (c) => {
       bingoItemId: body.bingoItemId as string,
       gsfGroupId: body.gsfGroupId as string,
       accountName: body.accountName as string,
+      slotIndex:
+        body.slotIndex !== undefined ? Number(body.slotIndex) : undefined,
     });
     return c.json(result[0]);
   } catch (err: any) {
@@ -444,6 +446,12 @@ api.post("/bingo/claim", async (c) => {
     }
     if (err.message === "SQUARE_FULL") {
       return c.json({ error: "This square is already full." }, 409);
+    }
+    if (err.message === "SLOT_TAKEN") {
+      return c.json({ error: "That slot has already been claimed." }, 409);
+    }
+    if (err.message === "INVALID_SLOT") {
+      return c.json({ error: "Invalid slot." }, 400);
     }
     console.error(err);
     return c.json({ error: "Internal server error" }, 500);

@@ -10,14 +10,20 @@ export async function claimBingo(
   bingoItemId: number,
   gsfGroupId: string,
   accountName: string,
+  slotIndex?: number,
 ) {
+  const body: Record<string, string> = {
+    bingoItemId: String(bingoItemId),
+    gsfGroupId,
+    accountName,
+  };
+  if (slotIndex !== undefined) {
+    body.slotIndex = String(slotIndex);
+  }
+
   const res = await fetch(`${BASE}/bingo/claim`, {
     method: "POST",
-    body: new URLSearchParams({
-      bingoItemId: String(bingoItemId),
-      gsfGroupId,
-      accountName,
-    }),
+    body: new URLSearchParams(body),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error ?? "Unable to claim square");

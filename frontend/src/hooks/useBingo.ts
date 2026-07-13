@@ -24,9 +24,15 @@ export function useBingo() {
     bingoItemId: number,
     gsfGroupId: string,
     accountName: string,
+    slotIndex?: number,
   ) => {
     try {
-      const newClaim = await claimBingo(bingoItemId, gsfGroupId, accountName);
+      const newClaim = await claimBingo(
+        bingoItemId,
+        gsfGroupId,
+        accountName,
+        slotIndex,
+      );
       setItems((prev) =>
         prev.map((i) =>
           i.id === bingoItemId ? { ...i, claims: [...i.claims, newClaim] } : i,
